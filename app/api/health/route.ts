@@ -1,1 +1,0 @@
-export async function GET(){return Response.json({ok:true,service:"eduforge-ai",timestamp:new Date().toISOString()})}

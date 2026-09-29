@@ -1,112 +1,186 @@
 "use client";
-import { useEffect,useRef,useState } from "react";
-import ExamPrep from "./exam-prep";
-import { UploadCloud,FileText,Brain,BookOpen,MessageSquare,Layers3,Check,BarChart3,Settings2,LogOut,Plus,Sparkles,ArrowUpRight,Search,Menu,X,ChevronRight,ShieldCheck,Download,Gauge } from "lucide-react";
 
-type Role="student"|"admin"|"super_admin";
-type Account={id:string;name:string;email:string;password:string;role:Role};
-type Source={name:string;text:string;chunks:number;size?:number};
-type Material={kind:string;data:any;provider?:string};
+import { useMemo, useState } from "react";
+import {
+  BarChart3, Bell, BookOpen, CalendarDays, Check, ChevronRight, ClipboardCheck,
+  Clock3, Download, FileSpreadsheet, GraduationCap, LayoutDashboard, LogOut,
+  Menu, MessageSquare, MoreHorizontal, Search, Settings, ShieldCheck, Users,
+  X, UserRound, AlertTriangle, ArrowUpRight
+} from "lucide-react";
 
-async function api(url:string,init?:RequestInit){const r=await fetch(url,init);const raw=await r.text();let d:any;try{d=raw?JSON.parse(raw):null}catch{}if(!r.ok)throw new Error(d?.error||"Something went wrong.");return d}
+type Role = "admin" | "faculty" | "student" | "parent";
+type Status = "present" | "absent" | "exam" | "leave";
 
-export default function Home(){
- const[account,setAccount]=useState<Account|null>(null),[view,setView]=useState("Dashboard"),[source,setSource]=useState<Source|null>(null),[material,setMaterial]=useState<Material|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[mobile,setMobile]=useState(false),input=useRef<HTMLInputElement>(null);
- useEffect(()=>{try{const a=localStorage.getItem("eduforge_session");if(a){const parsed=JSON.parse(a);setAccount(parsed);setView(homeView(parsed.role))};const s=localStorage.getItem("eduforge_source");if(s)setSource(JSON.parse(s));const m=localStorage.getItem("eduforge_material");if(m)setMaterial(JSON.parse(m))}catch{}},[]);
- useEffect(()=>{if(source)localStorage.setItem("eduforge_source",JSON.stringify(source))},[source]);
- useEffect(()=>{if(material)localStorage.setItem("eduforge_material",JSON.stringify(material))},[material]);
- if(!account)return <PortalLanding/>;
+const students = [
+  { roll:"01", name:"Aarav Patel", status:"present" as Status },
+  { roll:"02", name:"Diya Shah", status:"present" as Status },
+  { roll:"03", name:"Krish Mehta", status:"absent" as Status },
+  { roll:"04", name:"Mahi Desai", status:"present" as Status },
+  { roll:"05", name:"Vivaan Joshi", status:"exam" as Status },
+  { roll:"06", name:"Anaya Trivedi", status:"present" as Status },
+  { roll:"07", name:"Reyansh Parmar", status:"present" as Status },
+  { roll:"08", name:"Aanya Patel", status:"leave" as Status },
+];
 
- async function upload(f:File){setBusy(true);setMessage("Reading your file…");try{const fd=new FormData();fd.append("file",f);const d=await api("/api/documents",{method:"POST",body:fd});setSource({name:d.name,text:d.text,chunks:d.chunks,size:d.size});setView("Documents");setMessage("Source ready.");}catch(e){setMessage(e instanceof Error?e.message:"Upload failed.")}finally{setBusy(false)}}
- async function generate(kind:string){if(!source){input.current?.click();return}setBusy(true);setMessage("Generating "+kind+"…");try{const d=await api("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:source.text,kind:kind==="quiz"?"mcq":kind,count:10,language:"English",difficulty:"Medium",length:"Detailed"})});setMaterial({kind,data:d.data,provider:d.provider});setView(kind==="mcq"?"MCQs":kind==="qa"?"Questions":"Study Materials");setMessage("Generated successfully.");}catch(e){setMessage(e instanceof Error?e.message:"Generation failed.")}finally{setBusy(false)}}
- const logout=()=>{localStorage.removeItem("eduforge_session");setAccount(null);setView("Dashboard");setSource(null);setMaterial(null);setMessage("Signed out successfully.");};
- const nav: [string, any][] = account.role==="student" ? [["Dashboard",BarChart3],["Documents",FileText],["Study Materials",BookOpen],["Questions",MessageSquare],["MCQs",Layers3],["Quizzes",Check],["AI Tutor",Brain],["Exam Intelligence",Gauge],["Analytics",BarChart3]] : account.role==="admin" ? [["Dashboard",BarChart3],["Content Approvals",ShieldCheck],["Material Requests",MessageSquare],["Content Library",FileText],["Exam Intelligence",Gauge],["Analytics",BarChart3]] : [["Dashboard",BarChart3],["Users & Roles",ShieldCheck],["Master Data",Layers3],["System Analytics",BarChart3],["Audit Logs",FileText],["Content Approvals",Check]];
- return <div className="appShell">{(()=>{(window as any).__eduforgeSetView=setView;return null})()}<input hidden ref={input} type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.webp" onChange={e=>{const f=e.target.files?.[0];if(f)upload(f)}}/>
- <aside className={"appSidebar "+(mobile?"open":"")}><div className="brand"><div className="brandIcon">E</div><div><b>EduForge</b><small>AI Study Studio</small></div><button className="close" onClick={()=>setMobile(false)}><X size={16}/></button></div><button className="createBtn" onClick={()=>input.current?.click()}><Plus size={16}/> New source <span>⌘K</span></button><div className="navLabel">WORKSPACE</div>{nav.map(([n,I])=><button className={"navItem "+(view===n?"selected":"")} key={n} onClick={()=>{setView(n);setMobile(false)}}><I size={17}/>{n}</button>)}{account.role!=="student"&&<><div className="navLabel">MANAGE</div><button className={"navItem "+(view==="Admin"?"selected":"")} onClick={()=>setView("Admin")}><ShieldCheck size={17}/> Administration</button></>}<div className="sidebarBottom"><button className="navItem" onClick={()=>setView("Settings")}><Settings2 size={17}/> Settings</button><div className="account"><div>{account.name[0]}</div><span><b>{account.name}</b><small>{account.role}</small></span><button onClick={logout}><LogOut size={14}/></button></div></div></aside>
- <section className="appMain"><header className="appHeader"><div className="headerLeft"><button className="mobileMenu" onClick={()=>setMobile(true)}><Menu size={19}/></button><span>EDUFORGE</span><i>/</i><b>{view}</b></div><div className="headerRight"><div className="globalSearch"><Search size={14}/><span>Search workspace</span></div><button className="headerAvatar" title="Open account settings" onClick={()=>setView("Settings")}>{account.name[0]}</button></div></header>
- {view==="Dashboard"&&account.role==="student"&&<Dashboard source={source} material={material} openUpload={()=>input.current?.click()} generate={generate} openPanic={()=>setView("Exam Intelligence")}/>} {view==="Dashboard"&&account.role==="admin"&&<AdminDashboard/>} {view==="Dashboard"&&account.role==="super_admin"&&<SuperAdminDashboard/>}
- {view==="Documents"&&<Documents source={source} openUpload={()=>input.current?.click()}/>}
- {view==="Study Materials"&&<Material material={material} generate={generate}/>}
- {view==="Questions"&&<Questions material={material}/>}
- {view==="MCQs"&&<MCQs material={material} generate={generate}/>}
- {view==="Quizzes"&&<Quiz material={material}/>}
- {view==="AI Tutor"&&<Tutor source={source}/>}
- {view==="Analytics"&&<Analytics source={source} material={material}/>}
- {view==="Content Approvals"&&account.role!=="student"&&<ContentApprovals/>} {view==="Material Requests"&&account.role==="admin"&&<MaterialRequests/>} {view==="Content Library"&&account.role==="admin"&&<AdminContentLibrary openUpload={()=>input.current?.click()}/>} {view==="Users & Roles"&&account.role==="super_admin"&&<UsersRoles/>} {view==="Master Data"&&account.role==="super_admin"&&<MasterData/>} {view==="System Analytics"&&account.role==="super_admin"&&<SystemAnalytics/>} {view==="Audit Logs"&&account.role==="super_admin"&&<AuditLogs/>} {view==="Admin"&&account.role!=="student"&&<Admin/>}{view==="Settings"&&<Settings account={account}/>} {isForbiddenView(view,account.role)&&<AccessDenied role={account.role}/>} 
- {message&&<div className="toast"><span>{busy?"":<Check size={13}/>}</span>{message}<button onClick={()=>setMessage("")}><X size={13}/></button></div>}</section></div>
+const lectures = [
+  { time:"09:00 – 10:00", subject:"Database Management System", course:"BCA · Semester 3 · Div A", room:"Lab 204" },
+  { time:"10:15 – 11:15", subject:"Web Technology", course:"BCA · Semester 3 · Div A", room:"Room 306" },
+  { time:"11:30 – 12:30", subject:"Java Programming", course:"BCA · Semester 3 · Div B", room:"Lab 102" },
+];
+
+const navByRole: Record<Role, string[]> = {
+  admin:["Overview","Departments","Students","Faculty","Subjects","Timetable","Leaves","Defaulters","Reports","Audit Logs","Settings"],
+  faculty:["Overview","Today's Lectures","Attendance","Timetable","Leaves","Adjustments","Reports","Settings"],
+  student:["Overview","My Attendance","Timetable","Leave Requests","Notifications","Reports","Settings"],
+  parent:["Overview","Attendance","Notifications","Leave Status","Settings"],
+};
+
+export default function Home() {
+  const [role,setRole]=useState<Role>("faculty");
+  const [page,setPage]=useState("Overview");
+  const [mobile,setMobile]=useState(false);
+  const [toast,setToast]=useState("");
+  const [attendance,setAttendance]=useState(students);
+  const [search,setSearch]=useState("");
+
+  const nav=navByRole[role];
+  const activeLecture=lectures[0];
+  const filtered=useMemo(()=>attendance.filter(s=>s.name.toLowerCase().includes(search.toLowerCase())||s.roll.includes(search)),[attendance,search]);
+
+  function cycleStatus(roll:string,status:Status){
+    setAttendance(prev=>prev.map(s=>s.roll===roll?{...s,status}:s));
+  }
+
+  function submitAttendance(){
+    const absent=attendance.filter(s=>s.status==="absent");
+    setToast(absent.length ? `Attendance saved. ${absent.length} parent notification(s) queued.` : "Attendance saved successfully.");
+    setTimeout(()=>setToast(""),3500);
+  }
+
+  function switchRole(next:Role){
+    setRole(next); setPage("Overview"); setMobile(false);
+  }
+
+  return (
+    <div className="shell">
+      <aside className={`sidebar ${mobile?"open":""}`}>
+        <div className="brand">
+          <div className="brandMark"><GraduationCap size={21}/></div>
+          <div><strong>Campus</strong><span>Attendance</span></div>
+          <button className="iconBtn mobileOnly" onClick={()=>setMobile(false)}><X size={18}/></button>
+        </div>
+        <div className="institution"><div className="institutionLogo">PU</div><div><b>Parul University</b><small>Attendance workspace</small></div></div>
+        <div className="navLabel">WORKSPACE</div>
+        {nav.map(item=><button key={item} className={`navItem ${page===item?"active":""}`} onClick={()=>{setPage(item);setMobile(false)}}>{iconFor(item)}<span>{item}</span>{item==="Defaulters"&&<em>12</em>}</button>)}
+        <div className="sidebarBottom">
+          <button className="navItem" onClick={()=>setPage("Settings")}><Settings size={17}/><span>Settings</span></button>
+          <div className="userMini"><div className="avatar">PP</div><div><b>Prof. Patel</b><small>{roleLabel(role)}</small></div><MoreHorizontal size={16}/></div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <header className="topbar">
+          <button className="iconBtn mobileOnly" onClick={()=>setMobile(true)}><Menu size={20}/></button>
+          <div className="crumb"><span>COLLEGE</span><ChevronRight size={13}/><b>{page}</b></div>
+          <div className="topActions">
+            <div className="roleSwitcher">{(["admin","faculty","student","parent"] as Role[]).map(r=><button key={r} className={role===r?"selected":""} onClick={()=>switchRole(r)}>{roleLabel(r)}</button>)}</div>
+            <div className="searchBox"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search students..." /></div>
+            <button className="iconBtn"><Bell size={18}/><i/></button>
+            <div className="topAvatar">PP</div>
+          </div>
+        </header>
+
+        {page==="Overview" && <Overview role={role} onOpen={()=>setPage(role==="faculty"?"Today's Lectures":role==="student"?"My Attendance":"Attendance")} />}
+        {page==="Today's Lectures" && role==="faculty" && <FacultyLectures onStart={()=>setPage("Attendance")} />}
+        {page==="Attendance" && (role==="faculty"||role==="parent") && (
+          role==="faculty"
+          ? <AttendancePanel attendance={filtered} lecture={activeLecture} onStatus={cycleStatus} onSubmit={submitAttendance} search={search}/>
+          : <StudentAttendance readonly={true}/>
+        )}
+        {page==="My Attendance" && role==="student" && <StudentAttendance/>}
+        {page==="Timetable" && <Timetable role={role}/>}
+        {page==="Leave Requests" && role==="student" && <LeaveStudent onToast={setToast}/>}
+        {page==="Leaves" && (role==="faculty"||role==="admin") && <LeaveAdmin onToast={setToast}/>}
+        {page==="Adjustments" && role==="faculty" && <Adjustments/>}
+        {["Departments","Students","Faculty","Subjects"].includes(page) && role==="admin" && <Master title={page}/>}
+        {page==="Defaulters" && role==="admin" && <Defaulters/>}
+        {page==="Reports" && <Reports/>}
+        {page==="Audit Logs" && role==="admin" && <Audit/>}
+        {page==="Notifications" && (role==="student"||role==="parent") && <Notifications/>}
+        {page==="Leave Status" && role==="parent" && <LeaveStatus/>}
+        {page==="Settings" && <SettingsPage role={role}/>}
+
+        {toast && <div className="toast"><Check size={16}/>{toast}<button onClick={()=>setToast("")}><X size={14}/></button></div>}
+      </main>
+    </div>
+  );
 }
 
-
-function PortalLanding(){return <main className="authPage auth-student"><div className="authShow"><div className="authBrand"><div>E</div><b>EduForge</b><span className="authRoleBadge">Secure Portals</span></div><div className="authCopy"><small>EDUFORGE ACCESS</small><h1>Choose your portal.</h1><p>Separate workspaces for Students, Admin / Faculty and Super Admin.</p></div></div><div className="authForm"><div className="portalIcon">E</div><small>PORTAL SELECTOR</small><h2>Where do you want to go?</h2><p>Select the access level for your EduForge workspace.</p><div style={{display:"grid",gap:10,marginTop:18}}>{[["Student Portal","/student/login","Study workspace"],["Admin / Faculty Portal","/admin/login","Moderation & content"],["Super Admin Portal","/portal-root/login","System governance"]].map(([title,url,desc])=><a key={url} href={url} style={{display:"block",padding:"15px 16px",border:"1px solid #e5e7eb",borderRadius:14,textDecoration:"none",color:"inherit",background:"#fff"}}><b style={{display:"block"}}>{title}</b><span style={{display:"block",fontSize:12,color:"#667085",marginTop:4}}>{desc}</span></a>)}</div><div className="demoLogin"><b>Direct portal URLs</b><span>/student/login · /admin/login · /portal-root/login</span></div></div></main>}
-
-function homeView(role:Role){return "Dashboard"}
-function isForbiddenView(view:string,role:Role){
- const student=["Content Approvals","Material Requests","Content Library","Users & Roles","Master Data","System Analytics","Audit Logs","Admin"];
- const admin=["Users & Roles","Master Data","System Analytics","Audit Logs"];
- const superOnly:string[]=[];
- return role==="student"?student.includes(view):role==="admin"?admin.includes(view):superOnly.includes(view);
+function iconFor(item:string){
+  const p={size:17};
+  if(item==="Overview") return <LayoutDashboard {...p}/>;
+  if(item.includes("Attendance")) return <ClipboardCheck {...p}/>;
+  if(item.includes("Timetable")) return <CalendarDays {...p}/>;
+  if(item.includes("Leave")) return <FileSpreadsheet {...p}/>;
+  if(item.includes("Faculty")||item.includes("Students")||item.includes("Departments")) return <Users {...p}/>;
+  if(item==="Subjects") return <BookOpen {...p}/>;
+  if(item==="Reports") return <BarChart3 {...p}/>;
+  if(item==="Audit Logs") return <ShieldCheck {...p}/>;
+  if(item==="Notifications") return <Bell {...p}/>;
+  return <Settings {...p}/>;
 }
-function AccessDenied({role}:{role:Role}){return <main className="content"><div className="empty"><ShieldCheck size={24}/><h3>Access restricted</h3><p>This area is not available for the <b>{role.replace("_"," ")}</b> role.</p></div></main>}
+function roleLabel(r:Role){return r==="admin"?"Admin":r==="faculty"?"Faculty":r==="student"?"Student":"Parent";}
 
-function RoleStat({value,label,meta}:{value:string;label:string;meta:string}){return <div className="roleStat"><small>{label}</small><b>{value}</b><span>{meta}</span></div>}
-
-function AdminDashboard(){
- return <main className="content"><div className="headingRow"><div><label>ADMIN / FACULTY MODERATOR</label><h1>Keep learning content <em>trusted.</em></h1><p>Review student contributions, manage academic material and respond to requests from one moderation workspace.</p></div><button className="blackBtn" onClick={()=>{(window as any).__eduforgeSetView?.("Content Approvals")}}><ShieldCheck size={15}/> Moderation queue</button></div>
- <div className="roleStats"><RoleStat value="12" label="Pending approvals" meta="Needs review"/><RoleStat value="8" label="Material requests" meta="Open requests"/><RoleStat value="4" label="Reported files" meta="Needs attention"/><RoleStat value="96%" label="Verified content" meta="This month"/></div>
- <div className="roleGrid"><div className="rolePanel"><small>APPROVAL QUEUE</small><h2>Student uploads waiting for review</h2>{["DBMS Unit 3 Notes.pdf","Java Lab Manual.docx","OS Previous Year Questions.pdf"].map((x,i)=><div className="queueRow" key={x}><span><b>{x}</b><small>Student upload · {i+1}h ago</small></span><span className="statusPill">PENDING</span></div>)}<button className="ghostBtn" onClick={()=>{(window as any).__eduforgeSetView?.("Content Approvals")}}>Open approval queue <ArrowUpRight size={13}/></button></div>
- <div className="rolePanel"><small>MATERIAL REQUEST BOARD</small><h2>What students need next</h2>{["ASP.NET Unit 4 short notes","Data Science PYQ with answers","Java Swing viva questions"].map(x=><div className="requestMini" key={x}><b>{x}</b><span>Requested by students</span></div>)}<button className="ghostBtn" onClick={()=>{(window as any).__eduforgeSetView?.("Material Requests")}}>View all requests <ArrowUpRight size={13}/></button></div></div></main>
+function Overview({role,onOpen}:{role:Role;onOpen:()=>void}){
+  const isFaculty=role==="faculty";
+  return <section className="content">
+    <div className="pageHead"><div><span className="eyebrow">{roleLabel(role).toUpperCase()} WORKSPACE</span><h1>Good morning, <em>Prof. Patel.</em></h1><p>Everything important for today's attendance is in one place.</p></div><button className="primary" onClick={onOpen}>{isFaculty?"Start today's attendance":"View attendance"} <ArrowUpRight size={15}/></button></div>
+    <div className="metricGrid">
+      {[
+        ["92.4%","Overall attendance","This semester","good"],
+        ["48","Today's students","Across 3 lectures",""],
+        ["03","Today's lectures","09:00 – 12:30",""],
+        ["12","Defaulters","Below 75% threshold","warn"]
+      ].map(([v,l,s,c])=><div className="metric" key={l}><span>{l}</span><b className={c}>{v}</b><small>{s}</small></div>)}
+    </div>
+    <div className="grid2">
+      <div className="card"><div className="cardHead"><div><span className="eyebrow">TODAY</span><h2>Upcoming lectures</h2></div><button className="textBtn" onClick={onOpen}>View all <ChevronRight size={14}/></button></div>
+        {lectures.map((l,i)=><div className="lectureRow" key={l.time}><div className="time"><b>{l.time}</b><small>{l.room}</small></div><div><b>{l.subject}</b><span>{l.course}</span></div><button className={i===0&&isFaculty?"primary small":"ghost"} onClick={i===0?onOpen:undefined}>{i===0&&isFaculty?"Start":i===0?"Open":"Scheduled"}</button></div>)}
+      </div>
+      <div className="card"><div className="cardHead"><div><span className="eyebrow">ATTENDANCE HEALTH</span><h2>Semester overview</h2></div><BarChart3 size={18}/></div><div className="donut"><div><b>92%</b><span>Overall</span></div></div><div className="legend"><span><i className="dot green"/>Present <b>92%</b></span><span><i className="dot red"/>Absent <b>6%</b></span><span><i className="dot blue"/>Leave <b>2%</b></span></div></div>
+    </div>
+    <div className="card activity"><div className="cardHead"><div><span className="eyebrow">RECENT ACTIVITY</span><h2>Attendance activity</h2></div><button className="iconBtn"><MoreHorizontal size={18}/></button></div>
+      {["DBMS attendance submitted · 47/48 present","MCA Sem 2 leave request approved","BCA Sem 3 timetable updated","12 students crossed defaulter threshold"].map((x,i)=><div className="activityRow" key={x}><div className="activityIcon">{i===3?<AlertTriangle size={15}/>:<Check size={15}/>}</div><span>{x}</span><small>{i+1}h ago</small></div>)}
+    </div>
+  </section>
 }
 
-function SuperAdminDashboard(){
- return <main className="content"><div className="headingRow"><div><label>SUPER ADMIN / OWNER CONTROL</label><h1>The whole platform, <em>under control.</em></h1><p>Manage users, roles, academic master data, storage, activity and system-level governance.</p></div><button className="blackBtn" onClick={()=>{(window as any).__eduforgeSetView?.("System Analytics")}}><ShieldCheck size={15}/> System controls</button></div>
- <div className="roleStats"><RoleStat value="2,481" label="Registered students" meta="All institutions"/><RoleStat value="18" label="Active admins" meta="Across departments"/><RoleStat value="7,842" label="Materials" meta="Verified + pending"/><RoleStat value="68%" label="Storage used" meta="34.1 GB / 50 GB"/></div>
- <div className="roleGrid"><div className="rolePanel"><small>SYSTEM OVERVIEW</small><h2>Platform activity</h2><div className="systemRows"><div><b>Daily downloads</b><strong>1,284</strong></div><div><b>AI generations</b><strong>842</strong></div><div><b>New users today</b><strong>37</strong></div></div></div>
- <div className="rolePanel"><small>GOVERNANCE</small><h2>Critical controls</h2>{["User & role management","University / course / semester setup","Audit trail & activity logs"].map(x=><div className="controlRow" key={x}><ShieldCheck size={15}/><b>{x}</b><ArrowUpRight size={13}/></div>)}</div></div></main>
+function FacultyLectures({onStart}:{onStart:()=>void}){
+ return <section className="content"><div className="pageHead"><div><span className="eyebrow">FACULTY · TODAY</span><h1>Today's <em>lectures.</em></h1><p>Timetable-driven attendance. No repetitive class or subject selection.</p></div></div><div className="lectureStack">{lectures.map((l,i)=><div className={`lectureCard ${i===0?"current":""}`} key={l.time}><div className="lectureTime"><Clock3 size={18}/><b>{l.time}</b>{i===0&&<span>NOW</span>}</div><div className="lectureInfo"><span>{l.course}</span><h2>{l.subject}</h2><small>{l.room} · 48 students</small></div><button className={i===0?"primary":"ghost"} onClick={i===0?onStart:undefined}>{i===0?"Start Attendance":"Scheduled"} <ArrowUpRight size={14}/></button></div>)}</div></section>
 }
 
-function ContentApprovals(){
- const[notice,setNotice]=useState("");
- const items=["DBMS Unit 3 Notes.pdf","Java Lab Manual.docx","Operating Systems PYQ.pdf","Python Data Science Notes.pdf"];
- return <main className="content"><div className="headingRow"><div><label>CONTENT MODERATION</label><h1>Review before <em>publish.</em></h1><p>Faculty moderators can inspect, verify, reject or badge student-submitted material.</p></div></div>{notice&&<div className="successLine"><Check size={15}/><b>{notice}</b><button className="ghostBtn" onClick={()=>setNotice("")}>Dismiss</button></div>}<div className="approvalList">{items.map((x,i)=><article key={x}><div className="docIcon"><FileText size={18}/></div><div><b>{x}</b><small>Course → Semester → Subject → Unit</small></div><span className="statusPill">PENDING</span><button className="approveBtn" onClick={(e)=>{e.stopPropagation();setNotice(`${x} approved and published.`)}}>Approve</button><button className="rejectBtn" onClick={(e)=>{e.stopPropagation();setNotice(`${x} rejected and returned to uploader.`)}}>Reject</button></article>)}</div></main>
+function AttendancePanel({attendance,lecture,onStatus,onSubmit}:{attendance:any[];lecture:any;onStatus:(r:string,s:Status)=>void;onSubmit:()=>void;search:string}){
+ const counts={present:attendance.filter(s=>s.status==="present").length,absent:attendance.filter(s=>s.status==="absent").length,exam:attendance.filter(s=>s.status==="exam").length,leave:attendance.filter(s=>s.status==="leave").length};
+ return <section className="content"><div className="pageHead"><div><span className="eyebrow">LIVE ATTENDANCE</span><h1>{lecture.subject}</h1><p>{lecture.course} · {lecture.time} · {lecture.room}</p></div><button className="primary" onClick={onSubmit}>Submit Attendance <Check size={15}/></button></div>
+ <div className="attendanceStats"><span><i className="dot green"/>Present <b>{counts.present}</b></span><span><i className="dot red"/>Absent <b>{counts.absent}</b></span><span><i className="dot blue"/>Exam Only <b>{counts.exam}</b></span><span><i className="dot amber"/>On Leave <b>{counts.leave}</b></span></div>
+ <div className="card attendanceTable"><div className="tableHead"><span>ROLL</span><span>STUDENT</span><span>STATUS</span><span>QUICK ACTION</span></div>
+ {attendance.map(s=><div className="tableRow" key={s.roll}><span className="roll">{s.roll}</span><div className="studentCell"><div className="avatar">{s.name.split(" ").map((x:string)=>x[0]).join("").slice(0,2)}</div><div><b>{s.name}</b><small>BCA · Sem 3 · Div A</small></div></div><span className={`status ${s.status}`}>{statusLabel(s.status)}</span><div className="statusButtons">{(["present","absent","exam","leave"] as Status[]).map(x=><button key={x} className={s.status===x?"chosen":""} onClick={()=>onStatus(s.roll,x)}>{statusShort(x)}</button>)}</div></div>)}
+ </div></section>
 }
+function statusLabel(s:Status){return s==="present"?"Present":s==="absent"?"Absent":s==="exam"?"Exam Only":"On Leave";}
+function statusShort(s:Status){return s==="present"?"P":s==="absent"?"A":s==="exam"?"E":"L";}
 
-function MaterialRequests(){return <main className="content"><div className="headingRow"><div><label>MATERIAL REQUEST BOARD</label><h1>Students asked. <em>Faculty responds.</em></h1><p>Track requested notes, lab manuals, PYQs and other missing study resources.</p></div></div><div className="requestBoard">{["ASP.NET Unit 4 short notes","Data Science PYQ with answers","Java Swing viva questions","DBMS normalization examples"].map((x,i)=><article key={x}><div><small>REQUEST #{100+i}</small><h3>{x}</h3><p>Requested by {12+i*4} students · BCA · Semester {i%2+3}</p></div><span className="statusPill">PENDING</span><button className="blackBtn">Upload material <UploadCloud size={13}/></button></article>)}</div></main>}
-
-function AdminContentLibrary({openUpload}:any){return <main className="content"><div className="headingRow"><div><label>CONTENT UPLOAD MANAGER</label><h1>Build the verified <em>library.</em></h1><p>Upload PDFs, lab manuals and syllabi, then classify them by Course → Semester → Subject → Unit.</p></div><button className="blackBtn" onClick={openUpload}><UploadCloud size={15}/> Upload content</button></div><div className="taxonomyCard"><div><small>ACADEMIC TAXONOMY</small><h2>Content classification</h2></div><div className="selectRow"><select><option>Course: BCA</option><option>MCA</option></select><select><option>Semester: 5</option><option>6</option></select><select><option>Subject: DBMS</option><option>Java</option></select><select><option>Unit: 3</option><option>4</option></select></div></div></main>}
-
-function UsersRoles(){return <main className="content"><div className="headingRow"><div><label>USER & ROLE MANAGEMENT</label><h1>Who can access <em>what.</em></h1><p>Create admins, assign academic scope and suspend abusive or spam accounts.</p></div><button className="blackBtn"><Plus size={15}/> New admin</button></div><div className="userTable">{[["Dr. Mehta","admin","BCA · All semesters"],["Prof. Shah","admin","MCA · AI"],["Demo Student","student","BCA · Sem 5"]].map(r=><div className="userRow" key={r[0]}><b>{r[0]}</b><span className="roleBadge">{r[1]}</span><small>{r[2]}</small><button className="ghostBtn">Manage</button></div>)}</div></main>}
-
-function MasterData(){return <main className="content"><div className="headingRow"><div><label>DYNAMIC MASTER DATA</label><h1>Change academics <em>without code.</em></h1><p>Manage universities, courses, semesters and subjects dynamically.</p></div><button className="blackBtn"><Plus size={15}/> Add master data</button></div><div className="masterGrid">{["Universities","Courses","Semesters","Subjects"].map((x,i)=><div key={x}><small>MASTER</small><b>{x}</b><strong>{[3,8,6,42][i]}</strong><span>Configured records</span></div>)}</div></main>}
-
-function SystemAnalytics(){return <main className="content"><div className="headingRow"><div><label>SYSTEM ANALYTICS</label><h1>See the platform <em>clearly.</em></h1><p>Usage, storage, downloads and AI activity at system level.</p></div></div><div className="stats"><div><small>Daily downloads</small><b>1,284</b><span>+12% vs yesterday</span></div><div><small>AI generations</small><b>842</b><span>Notes, Q&A, MCQs</span></div><div><small>Storage</small><b>34.1 GB</b><span>68% of 50 GB</span></div><div><small>Active users</small><b>1,936</b><span>Last 30 days</span></div></div></main>}
-
-function AuditLogs(){return <main className="content"><div className="headingRow"><div><label>AUDIT TRAIL</label><h1>Every important action, <em>traceable.</em></h1><p>Approval, rejection, deletion, role changes and master-data edits should remain auditable.</p></div></div><div className="auditList">{["Prof. Mehta approved DBMS Unit 3 Notes.pdf","Admin Shah updated MCA → AI → Semester 2","Super Admin suspended a spam account","Prof. Mehta uploaded Java Lab Manual.docx"].map((x,i)=><div key={x}><span>0{i+1}</span><div><b>{x}</b><small>Today · {10+i}:2{i} · Activity log</small></div></div>)}</div></main>}
-function Dashboard({source,material,openUpload,generate,openPanic}:any){return <main className="content"><div className="headingRow"><div><label>AI STUDY STUDIO</label><h1>Make studying <em>feel lighter.</em></h1><p>Upload your class material. EduForge transforms it into notes, questions, MCQs and practice.</p></div><button className="blackBtn" onClick={openUpload}><UploadCloud size={16}/> Add source</button></div><section className="heroPanel"><div className="heroText"><span><Sparkles size={13}/> SOURCE-GROUNDED AI</span><h2>One source.<br/><strong>Every way to learn.</strong></h2><p>Your material stays at the centre. Build a complete study pack without jumping between tools.</p><button className="blueBtn" onClick={openUpload}>Start with a file <ArrowUpRight size={15}/></button></div><div className="heroVisual"><div className="ring r1"/><div className="ring r2"/><div className="core"><Brain size={25}/><small>EDUFORGE</small><b>UNDERSTAND</b></div><div className="float one"><FileText size={15}/><b>Notes</b><Check size={13}/></div><div className="float two"><Layers3 size={15}/><b>MCQs</b><Check size={13}/></div></div></section>{source?<section className="activeSource"><div className="docIcon"><FileText size={20}/></div><div className="sourceMeta"><small>ACTIVE SOURCE</small><b>{source.name}</b><span>{source.chunks} chunks · {source.text.length.toLocaleString()} characters</span></div><button className="blackBtn" onClick={()=>generate("notes")} disabled={!source}>Generate notes <ChevronRight size={14}/></button></section>:<button className="dropArea" onClick={openUpload}><div><UploadCloud size={23}/></div><b>Drop your study file here</b><span>PDF · DOCX · PPTX · XLSX · CSV · TXT · Images</span><small>Click to browse</small></button>}<div className="studentTools"><div><small>ACADEMIC PROFILE</small><b>BCA · Semester 5</b><span>DBMS · Java · ASP.NET</span></div><div><small>SAVED & BOOKMARKED</small><b>24 saved materials</b><span>Notes · PYQs · Formula sheets</span></div><div><small>REQUEST TRACKER</small><b>3 active requests</b><span>2 approved · 1 pending</span></div><div><small>MY UPLOADS & POINTS</small><b>480 points</b><span>Top Contributor badge</span></div><button className="panicShortcut" onClick={openPanic}>⚡ Exam Panic Mode</button></div><div className="sectionHead"><div><label>QUICK START</label><h3>What do you want to create?</h3></div><span>Built from your source</span></div><div className="featureGrid">{[["notes","Study notes","Structured explanations",BookOpen],["qa","Questions & answers","Exam-ready Q&A",MessageSquare],["mcq","MCQ practice","Concept + application",Layers3],["quiz","Practice quiz","Test your recall",Check]].map(([k,t,d,I]:any)=><button className="featureCard" key={k} onClick={()=>generate(k==="quiz"?"quiz":k)}><div><I size={18}/></div><span><b>{t}</b><small>{d}</small></span><ArrowUpRight size={14}/></button>)}</div>{material&&<div className="successLine"><Check size={15}/><b>Latest {material.kind.toUpperCase()} generated</b><span>{material.provider||"EduForge AI engine"}</span></div>}</main>}
-
-function Page({label,title,text,action,labelBtn}:any){return <div className="content"><div className="headingRow"><div><label>{label}</label><h1>{title}</h1><p>{text}</p></div>{action&&<button className="blackBtn" onClick={action}><Sparkles size={15}/>{labelBtn}</button>}</div></div>}
-function Documents({source,openUpload}:any){return <main className="content"><div className="headingRow"><div><label>SOURCE LIBRARY</label><h1>Your material, <em>ready.</em></h1><p>Every file becomes a reusable source for your learning workspace.</p></div><button className="blackBtn" onClick={openUpload}><Plus size={15}/> Add source</button></div>{source?<><div className="documentCard"><div className="docIcon"><FileText size={23}/></div><div><small>DOCUMENT</small><h3>{source.name}</h3><p>{source.chunks} chunks · {source.text.length.toLocaleString()} characters</p></div><span className="ready">READY</span></div><pre className="textPreview">{source.text.slice(0,14000)}</pre></>:<Empty openUpload={openUpload} title="Your library is empty" text="Upload a PDF, presentation, spreadsheet or image to begin."/ >}</main>}
-function Material({material,generate}:any){const d=material?.kind==="notes"?material.data:null;return <main className="content"><div className="headingRow"><div><label>STUDY MATERIAL</label><h1>Knowledge, <em>organized.</em></h1><p>Clean notes generated from the source you uploaded.</p></div><button className="blackBtn" onClick={()=>generate("notes")}><Sparkles size={15}/> Generate notes</button></div>{d?<article className="paper"><small>GENERATED STUDY NOTES</small><h2>{d.title||"Study Notes"}</h2>{(d.summary||[]).map((x:string,i:number)=><p className="lead" key={i}>{x}</p>)}{(d.sections||[]).map((s:any,i:number)=><section key={i}><span>0{i+1}</span><div><h3>{s.heading}</h3><p>{s.content}</p><small>Source · {s.source||"Uploaded material"}</small></div></section>)}</article>:<Empty title="No study material yet" text="Generate notes from your active source."/>}</main>}
-function Questions({material}:any){const q=material?.kind==="qa"&&Array.isArray(material.data)?material.data:[];return <main className="content"><div className="headingRow"><div><label>QUESTION STUDIO</label><h1>Questions that <em>matter.</em></h1><p>Exam-style questions generated from your source.</p></div></div>{q.length?<div className="list">{q.map((x:any,i:number)=><article key={i}><b>Q{i+1}</b><div><h3>{x.question}</h3><p>{x.answer}</p><small>{x.marks||5} marks</small></div></article>)}</div>:<Empty title="No questions yet" text="Generate Q&A from the Dashboard."/>}</main>}
-function MCQs({material,generate}:any){const q=material?.kind==="mcq"&&Array.isArray(material.data)?material.data:[];return <main className="content"><div className="headingRow"><div><label>MCQ STUDIO</label><h1>Practice with <em>precision.</em></h1><p>Build a question bank with answers and explanations.</p></div><button className="blackBtn" onClick={()=>generate("mcq")}><Sparkles size={15}/> Generate MCQs</button></div>{q.length?<div className="list">{q.map((x:any,i:number)=><article className="mcq" key={i}><b>{String(i+1).padStart(2,"0")}</b><div><h3>{x.question}</h3>{x.options?.map((o:string,j:number)=><div className="option" key={j}><strong>{String.fromCharCode(65+j)}</strong>{o}</div>)}<small>{x.explanation}</small></div></article>)}</div>:<Empty title="MCQ bank is empty" text="Generate MCQs from your source."/>}</main>}
-function Quiz({material}:any){const q=material?.kind==="mcq"&&Array.isArray(material.data)?material.data:[];return <main className="content"><div className="headingRow"><div><label>QUIZ MODE</label><h1>Read less. <em>Recall more.</em></h1><p>Use your generated MCQs as a focused practice round.</p></div></div>{q.length?<div className="quizCard"><div className="quizTop"><span>READY TO PRACTICE</span><b>{q.length} questions</b></div><h2>Your quiz workspace is ready.</h2><p>Question-by-question practice, answers and explanations can live here.</p><button className="blueBtn" onClick={()=>alert("Quiz session started. Your generated MCQs are ready for practice.")}>Start quiz <ArrowUpRight size={15}/></button></div>:<Empty title="No quiz yet" text="Generate MCQs first, then practice them here."/>}</main>}
-function Tutor({source}:any){const[q,setQ]=useState(""),[a,setA]=useState(""),[busy,setBusy]=useState(false);async function ask(){if(!source||!q.trim())return;setBusy(true);try{const d=await api("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:source.text+"\nQuestion: "+q,kind:"qa",count:1,language:"English",difficulty:"Medium"})});setA(d.data?.[0]?.answer||d.data?.sections?.[0]?.content||"No answer returned.")}catch(e){setA(e instanceof Error?e.message:"Tutor error")}finally{setBusy(false)}}return <main className="content"><div className="headingRow"><div><label>AI TUTOR</label><h1>Ask your <em>material.</em></h1><p>{source?"Source-grounded help from "+source.name:"Upload a source to unlock tutoring."}</p></div></div><div className="tutorCard"><div className="tutorIcon"><Brain size={24}/></div><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder="Explain normalization in easy language…"/><button className="blackBtn" disabled={!source||busy} onClick={ask}>{busy?"Thinking…":"Ask EduForge"} <ArrowUpRight size={14}/></button>{a&&<div className="answer"><small>EDUFORGE ANSWER</small><p>{a}</p></div>}</div></main>}
-function Analytics({source,material}:any){return <main className="content"><div className="headingRow"><div><label>ANALYTICS</label><h1>Your study <em>system.</em></h1><p>A simple snapshot of this workspace.</p></div></div><div className="stats">{[[source?1:0,"Sources"],[material?1:0,"Generated packs"],[source?.chunks||0,"Source chunks"],[material?1:0,"Recent builds"]].map(([n,t])=><div key={String(t)}><small>{t}</small><b>{n}</b><span>Current workspace</span></div>)}</div></main>}
-function Admin(){return <main className="content"><div className="headingRow"><div><label>ADMINISTRATION</label><h1>Control the <em>workspace.</em></h1><p>Users, content, usage and security belong here.</p></div></div><div className="adminGrid">{["Users & roles","Content management","AI usage","Security & audit"].map(x=><div key={x}><ShieldCheck size={19}/><b>{x}</b><span>Workspace controls</span></div>)}</div></main>}
-function Settings({account}:any){return <main className="content"><div className="headingRow"><div><label>SETTINGS</label><h1>Your <em>workspace.</em></h1><p>Account preferences and profile details.</p></div></div><div className="profileCard"><div>{account.name[0]}</div><section><small>ACCOUNT</small><h3>{account.name}</h3><p>{account.email}</p><span>{account.role}</span></section></div></main>}
-function Empty({title,text,openUpload}:any){return <div className="empty"><Sparkles size={22}/><h3>{title}</h3><p>{text}</p>{openUpload&&<button className="blackBtn" onClick={openUpload}><UploadCloud size={15}/> Add source</button>}</div>}
-
-export function Auth({onLogin,forcedRole}:{onLogin:(a:Account)=>void;forcedRole?:Role}) {
- const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[register,setRegister]=useState(forcedRole==="student"),[name,setName]=useState(""),[error,setError]=useState("");
- const role:Role=forcedRole||"student";
- let label="STUDENT PORTAL", title=register?"Create your study space.":"Continue learning.", desc="Create a free student account and build your personal study workspace.", accent="Student access", demo="student@eduforge.ai / Student@123";
- if(role==="admin"){label="FACULTY / ADMIN PORTAL";title="Moderate with confidence.";desc="Faculty-only access for verified content, requests and academic moderation.";accent="Faculty verified";demo="admin@eduforge.ai / Admin@123";}
- if(role==="super_admin"){label="OWNER CONTROL PORTAL";title="System control, secured.";desc="Restricted owner access for users, master data, storage and audit governance.";accent="Restricted access";demo="superadmin@eduforge.ai / Super@123";}
- function submit(e:any){e.preventDefault();setError("");localStorage.removeItem("eduforge_session");const accounts:Account[]=JSON.parse(localStorage.getItem("eduforge_accounts")||"[]");
-  if(role==="student"&&register){if(!name||!email||password.length<6)return setError("Enter your name, email and a 6+ character password.");const a={id:crypto.randomUUID(),name,email,password,role:"student" as Role};localStorage.setItem("eduforge_accounts",JSON.stringify([...accounts,a]));onLogin(a);return;}
-  const demos:Account[]=[{id:"s",name:"Demo Student",email:"student@eduforge.ai",password:"Student@123",role:"student"},{id:"a",name:"Demo Admin",email:"admin@eduforge.ai",password:"Admin@123",role:"admin"},{id:"sa",name:"Super Admin",email:"superadmin@eduforge.ai",password:"Super@123",role:"super_admin"}];
-  const account=[...accounts,...demos].find(x=>x.email===email&&x.password===password&&x.role===role);
-  if(!account)return setError(role==="super_admin"?"Invalid owner credentials or restricted portal.":"Invalid credentials for this portal.");
-  onLogin(account);
- }
- return <main className={"authPage auth-"+role}><div className="authShow"><div className="authBrand"><div>E</div><b>EduForge</b><span className="authRoleBadge">{accent}</span></div><div className="authCopy"><small>{label}</small><h1>{title}</h1><p>{desc}</p></div><div className="authMock"><div className="mockBar"><i/><i/><i/></div><div className="mockBody"><aside/><main><small>{label}</small><h3>{role==="student"?"My Study Workspace":role==="admin"?"Moderation Queue":"System Overview"}</h3><div className="mockLine"/><div className="mockBoxes"><i/><i/><i/></div></main></div></div></div><div className="authForm"><div className="portalIcon">{role==="student"?"S":role==="admin"?"A":"SA"}</div><small>{label}</small><h2>{title}</h2><p>{desc}</p>{role==="student"&&<div className="authTabs"><button type="button" className={!register?"on":""} onClick={()=>setRegister(false)}>Sign in</button><button type="button" className={register?"on":""} onClick={()=>setRegister(true)}>Create account</button></div>}<form onSubmit={submit}>{role==="student"&&register&&<input placeholder="Full name" value={name} onChange={e=>setName(e.target.value)}/>}<input placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)}/><button>{role==="student"&&register?"Create account":"Sign in"} <ArrowUpRight size={15}/></button></form>{error&&<div className="formError">{error}</div>}<div className="demoLogin"><b>{role==="super_admin"?"Restricted demo access":"Portal access"}</b><span>{demo}</span>{role==="admin"&&<small>No public registration. Admin accounts are created by Super Admin.</small>}{role==="super_admin"&&<small>This portal is intentionally not linked from the public navigation.</small>}</div></div></main>;
+function StudentAttendance({readonly=false}:{readonly?:boolean}){
+ return <section className="content"><div className="pageHead"><div><span className="eyebrow">ATTENDANCE</span><h1>My attendance <em>overview.</em></h1><p>Semester-wise and subject-wise attendance with eligibility indicators.</p></div><button className="ghost"><Download size={15}/> Export</button></div><div className="studentHero"><div><span>OVERALL</span><b>88.7%</b><small>Above 75% eligibility threshold</small></div><div className="progressBig"><div style={{width:"88.7%"}}/></div></div><div className="card"><div className="tableHead subjectHead"><span>SUBJECT</span><span>HELD</span><span>PRESENT</span><span>ATTENDANCE</span></div>{["Database Management System","Web Technology","Java Programming","Software Engineering","Computer Networks"].map((s,i)=><div className="subjectRow" key={s}><div><b>{s}</b><small>BCA · Semester 3</small></div><span>{42+i}</span><span>{39-i}</span><strong className={i===4?"warn":""}>{i===4?"71.4%":(92-i*4)+".8%"}</strong></div>)}</div></section>
 }
+function Timetable({role}:{role:Role}){return <section className="content"><div className="pageHead"><div><span className="eyebrow">MASTER TIMETABLE</span><h1>Weekly <em>schedule.</em></h1><p>{role==="admin"?"Manage department and faculty timetable slots.":"Your assigned lectures are automatically surfaced each day."}</p></div><button className="primary">{role==="admin"?"Edit timetable":"Calendar view"} <CalendarDays size={15}/></button></div><div className="week"><div className="weekHead">{["MON","TUE","WED","THU","FRI","SAT"].map(x=><b key={x}>{x}</b>)}</div>{lectures.map((l,i)=><div className="weekRow" key={l.subject}><span>{l.time}</span>{["BCA · A","BCA · A","BCA · B","MCA · A","BCA · A","—"].map((x,j)=><div key={j} className={j===i?"slot active":"slot"}>{j===i&&<><b>{l.subject}</b><small>{x} · {l.room}</small></>}</div>)}</div>)}</div></section>}
+function LeaveStudent({onToast}:{onToast:(s:string)=>void}){return <section className="content"><div className="pageHead"><div><span className="eyebrow">STUDENT SERVICES</span><h1>Leave <em>requests.</em></h1><p>Apply online and attach medical or supporting documents when needed.</p></div><button className="primary" onClick={()=>onToast("Leave request created and sent for approval.")}>New Leave Request <ArrowUpRight size={15}/></button></div><div className="requestList">{["Medical leave · 18 Sep","Family function · 02 Sep","Medical leave · 21 Aug"].map((x,i)=><div className="requestRow" key={x}><FileSpreadsheet size={18}/><div><b>{x}</b><small>{i===0?"Pending review":"Approved"} · Document attached</small></div><span className={i===0?"status pending":"status approved"}>{i===0?"Pending":"Approved"}</span></div>)}</div></section>}
+function LeaveAdmin({onToast}:{onToast:(s:string)=>void}){return <section className="content"><div className="pageHead"><div><span className="eyebrow">LEAVE MANAGEMENT</span><h1>Review <em>requests.</em></h1><p>Approved leave automatically prevents false absence notifications.</p></div></div><div className="requestList">{["Aanya Patel · Medical · 18 Sep","Rohan Shah · Family function · 18 Sep","Mihir Desai · Medical · 19 Sep"].map((x,i)=><div className="requestRow" key={x}><div className="avatar">AP</div><div><b>{x}</b><small>Supporting document · Submitted 20 min ago</small></div><span className="requestActions"><button className="approve" onClick={()=>onToast("Leave approved. Attendance will show On Leave.")}>Approve</button><button className="reject" onClick={()=>onToast("Leave rejected.")}>Reject</button></span></div>)}</div></section>}
+function Adjustments(){return <section className="content"><div className="pageHead"><div><span className="eyebrow">FACULTY ADJUSTMENT</span><h1>Substitute <em>lectures.</em></h1><p>Temporary access is granted only for the selected date and lecture.</p></div><button className="primary">New adjustment <ArrowUpRight size={15}/></button></div><div className="requestList">{["DBMS · 19 Sep · Prof. Shah → Prof. Patel","Web Technology · 20 Sep · Prof. Mehta → Prof. Patel"].map(x=><div className="requestRow" key={x}><Users size={18}/><div><b>{x}</b><small>Temporary attendance access · Active</small></div><span className="status approved">Active</span></div>)}</div></section>}
+function Master({title}:{title:string}){return <section className="content"><div className="pageHead"><div><span className="eyebrow">ADMIN · MASTER MANAGEMENT</span><h1>{title} <em>management.</em></h1><p>Dynamic records with search, filters, validation and audit history.</p></div><button className="primary">Add {title.slice(0,-1)} <ArrowUpRight size={15}/></button></div><div className="card masterTable">{["BCA · Semester 3 · Division A","BCA · Semester 4 · Division B","MCA · Semester 1 · Division A","B.Tech · Semester 5 · Division A"].map((x,i)=><div className="masterRow" key={x}><div className="avatar">{String(i+1).padStart(2,"0")}</div><div><b>{x}</b><small>48 records · Updated today</small></div><button className="iconBtn"><MoreHorizontal size={17}/></button></div>)}</div></section>}
+function Defaulters(){return <section className="content"><div className="pageHead"><div><span className="eyebrow">ELIGIBILITY CONTROL</span><h1>Attendance <em>defaulters.</em></h1><p>Students below the configured threshold can be warned and marked for eligibility review.</p></div><button className="primary"><MessageSquare size={15}/> Send warnings</button></div><div className="card masterTable">{["Mihir Desai","Riya Patel","Dev Shah","Krisha Joshi"].map((x,i)=><div className="masterRow" key={x}><div className="avatar">{x.split(" ").map(y=>y[0]).join("")}</div><div><b>{x}</b><small>BCA · Sem 3 · DBMS · Parent notification eligible</small></div><strong className="warn">{68-i*3}%</strong><button className="ghost">Review</button></div>)}</div></section>}
+function Reports(){return <section className="content"><div className="pageHead"><div><span className="eyebrow">REPORTING</span><h1>Reports that <em>travel well.</em></h1><p>Export daily, monthly, semester and subject-wise attendance for department submission.</p></div><button className="primary"><Download size={15}/> Export Excel</button></div><div className="reportGrid">{["Daily attendance register","Monthly department report","Student attendance sheet","Defaulter & eligibility report"].map((x,i)=><div className="reportCard" key={x}><FileSpreadsheet size={20}/><b>{x}</b><span>Excel · PDF · Filters</span><ArrowUpRight size={15}/></div>)}</div></section>}
+function Audit(){return <section className="content"><div className="pageHead"><div><span className="eyebrow">SECURITY · AUDIT</span><h1>Every change, <em>traceable.</em></h1><p>Attendance edits require a reason and remain visible to authorized administrators.</p></div></div><div className="card audit">{["Prof. Patel changed Krish Mehta · Absent → Present · Reason: medical proof","HOD Shah approved Aanya Patel's leave","Admin created timetable slot · BCA Sem 3 · Monday 09:00","Prof. Mehta submitted attendance · DBMS · 47/48 present"].map((x,i)=><div key={x}><ShieldCheck size={16}/><div><b>{x}</b><small>Today · {10+i}:2{i} · Immutable audit event</small></div></div>)}</div></section>}
+function Notifications(){return <section className="content"><div className="pageHead"><div><span className="eyebrow">NOTIFICATIONS</span><h1>Stay <em>informed.</em></h1><p>Attendance, leave and eligibility alerts appear here.</p></div></div><div className="requestList">{["Attendance alert · DBMS · Absent on 18 Sep","Leave approved · Medical leave · 17 Sep","Warning · Attendance below 75% in Computer Networks"].map((x,i)=><div className="requestRow" key={x}><Bell size={18}/><div><b>{x}</b><small>Sent via notification center · Today</small></div><span className="status approved">Read</span></div>)}</div></section>}
+function LeaveStatus(){return <section className="content"><div className="pageHead"><div><span className="eyebrow">PARENT PORTAL</span><h1>Leave <em>status.</em></h1><p>View your student's current and historical leave requests.</p></div></div><div className="card studentHero"><div><span>STUDENT</span><b>Aarav Patel</b><small>3 requests this semester</small></div><div><span>LATEST</span><b>Approved</b><small>Medical leave · 18 Sep</small></div></div></section>}
+function SettingsPage({role}:{role:Role}){return <section className="content"><div className="pageHead"><div><span className="eyebrow">ACCOUNT</span><h1>Workspace <em>settings.</em></h1><p>Profile, notification preferences and role-specific controls.</p></div></div><div className="settingsGrid">{["Profile & account","Notification preferences","Attendance threshold","Security & sessions"].map((x,i)=><div className="card settingCard" key={x}><Settings size={18}/><b>{x}</b><small>{i===2?"Current threshold: 75%":`Configured for ${roleLabel(role)}`}</small><ChevronRight size={15}/></div>)}</div></section>}
