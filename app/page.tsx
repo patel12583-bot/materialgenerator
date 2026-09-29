@@ -1,5 +1,5 @@
 "use client";
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import {Upload,FileText,Brain,BarChart3,CheckCircle2,Sparkles,BookOpen,MessageSquare,Layers,Settings,ChevronRight,Download,RefreshCw} from "lucide-react";
 
 type Source={id:string,name:string,text:string,chunks:number};
