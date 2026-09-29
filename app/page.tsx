@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";\nimport { upload as blobUpload } from "@vercel/blob/client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { upload as blobUpload } from "@vercel/blob/client";
 import {
   Upload, FileText, Brain, BarChart3, CheckCircle2, Sparkles, BookOpen,
   MessageSquare, Layers, Settings, ChevronRight, Download, RefreshCw,
@@ -13,7 +14,8 @@ type Role="student"|"admin"|"super_admin";
 type Account={id:string,name:string,email:string,mobile:string,password:string,role:Role};
 
 const nav=[["Dashboard",BarChart3],["Documents",FileText],["Study Materials",BookOpen],["Questions",MessageSquare],["MCQs",Layers],["Quizzes",CheckCircle2],["AI Tutor",Brain],["Analytics",BarChart3]] as const;
-const roleLabel=(r:Role)=>r==="super_admin"?"Super Admin":r==="admin"?"Admin":"Student";\nasync function safeJson(r:Response){const raw=await r.text();let data:any=null;try{data=raw?JSON.parse(raw):null}catch{}if(!data)throw new Error("Server returned an empty or non-JSON response (HTTP "+r.status+").");if(!r.ok)throw new Error(data.error||"Request failed (HTTP "+r.status+").");return data}
+const roleLabel=(r:Role)=>r==="super_admin"?"Super Admin":r==="admin"?"Admin":"Student";
+async function safeJson(r:Response){const raw=await r.text();let data:any=null;try{data=raw?JSON.parse(raw):null}catch{}if(!data)throw new Error("Server returned an empty or non-JSON response (HTTP "+r.status+").");if(!r.ok)throw new Error(data.error||"Request failed (HTTP "+r.status+").");return data}
 
 export default function Home(){
  const[auth,setAuth]=useState<"login"|"register">("login");
@@ -43,9 +45,16 @@ export default function Home(){
    if(!f){setMsg("Pehla file select karo.");return;}
    setBusy(true);setMsg("File read + extract thai rahi che...");
    try{
-     const fd=new FormData();fd.append("file",f);
-     const r=await fetch("/api/documents",{method:"POST",body:fd});
-     const d=await safeJson(r);
+     let d:any;
+     if(f.size>4*1024*1024){
+       const blob=await blobUpload("eduforge/"+Date.now()+"-"+f.name,f,{access:"private",handleUploadUrl:"/api/blob/upload",multipart:true,onUploadProgress:p=>setMsg("Uploading "+Math.round(p.percentage)+"%…")});
+       const r=await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:blob.url,name:f.name,size:f.size,type:f.type})});
+       d=await safeJson(r);
+     }else{
+       const fd=new FormData();fd.append("file",f);
+       const r=await fetch("/api/documents",{method:"POST",body:fd});
+       d=await safeJson(r);
+     }
      const s={id:d.id,name:d.name,text:d.text,chunks:d.chunks,size:d.size};
      setSource(s);setFile(f);setMsg("✓ Upload complete — "+d.chunks+" chunks ready.");
      if(target)setTab(target);
