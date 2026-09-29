@@ -189,6 +189,7 @@ model AttendanceSession {
   facultyId String
   subjectId String
   date DateTime
+  dateKey String
   startedAt DateTime?
   submittedAt DateTime?
   examType ExamType?
@@ -197,8 +198,8 @@ model AttendanceSession {
   faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Restrict)
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
   records AttendanceRecord[]
-  @@unique([timetableId, date])
-  @@index([facultyId, date])
+  @@unique([timetableId, dateKey])
+  @@index([facultyId, dateKey])
 }
 
 model AttendanceRecord {
