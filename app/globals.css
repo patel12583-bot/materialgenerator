@@ -27,3 +27,7 @@
 .loginFooter{display:block;color:#a0a7b2;font-size:9px;text-align:center;margin-top:25px}
 .mobileLoginMark{display:none}
 @media(max-width:800px){.loginPage{grid-template-columns:1fr}.loginBrand{display:none}.loginPanel{min-height:100vh;padding:25px}.mobileLoginMark{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:#111827;color:#fff;margin-bottom:35px}.roleGrid{grid-template-columns:repeat(2,1fr)}}
+
+.imageLogo{overflow:hidden;background:#fff!important}
+.imageLogo img{width:100%;height:100%;object-fit:contain;display:block}
+.mobileLogo{padding:4px}
