@@ -7,10 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role { SUPER_ADMIN ADMIN HOD FACULTY STUDENT PARENT }
-enum AttendanceStatus { PRESENT ABSENT EXAM_ONLY ON_LEAVE LATE_PRESENT }
-enum LeaveStatus { PENDING APPROVED REJECTED }
-enum ExamType { MID_SEM FINAL_EXAM UNIT_TEST OTHER }
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  HOD
+  FACULTY
+  STUDENT
+  PARENT
+}
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  EXAM_ONLY
+  ON_LEAVE
+  LATE_PRESENT
+}
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+enum ExamType {
+  MID_SEM
+  FINAL_EXAM
+  UNIT_TEST
+  OTHER
+}
 
 model Institution {
   id String @id @default(cuid())
