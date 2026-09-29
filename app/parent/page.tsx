@@ -1,0 +1,1 @@
+import Portal from "@/components/Portal"; export default function Parent(){return <Portal role="Parent" title="Student attendance" subtitle="View your child's attendance status and receive absence, leave and eligibility notifications."/>

@@ -1,0 +1,1 @@
+import Portal from "@/components/Portal"; export default function Admin(){return <Portal role="Admin" title="College administration" subtitle="Manage departments, subjects, faculty, students, master timetable and system settings."/>}

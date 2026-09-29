@@ -1,0 +1,1 @@
+import Portal from "@/components/Portal"; export default function Faculty(){return <Portal role="Faculty" title="Today's lectures" subtitle="Your timetable drives attendance. Open the applicable lecture and mark the class in seconds."/>}

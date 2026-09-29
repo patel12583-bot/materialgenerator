@@ -1,0 +1,1 @@
+import Portal from "@/components/Portal"; export default function HOD(){return <Portal role="HOD" title="Department workspace" subtitle="Monitor faculty, students, attendance, leaves and defaulters for your department."/>}

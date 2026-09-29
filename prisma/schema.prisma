@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { SUPER_ADMIN ADMIN HOD FACULTY STUDENT PARENT }
+enum AttendanceStatus { PRESENT ABSENT EXAM_ONLY ON_LEAVE LATE_PRESENT }
+enum LeaveStatus { PENDING APPROVED REJECTED }
+enum ExamType { MID_SEM FINAL_EXAM UNIT_TEST OTHER }
+
+model Institution {
+  id String @id @default(cuid())
+  name String
+  campusName String?
+  address String?
+  phone String?
+  website String?
+  logoUrl String?
+  academicYear String @default("2026-27")
+  departments Department[]
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Department {
+  id String @id @default(cuid())
+  institutionId String
+  name String
+  code String
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  programs Program[]
+  users User[]
+  subjects Subject[]
+  timetables TimetableEntry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([institutionId, code])
+}
+
+model Program {
+  id String @id @default(cuid())
+  departmentId String
+  name String
+  code String
+  totalSemesters Int
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  semesters Semester[]
+  @@unique([departmentId, code])
+}
+
+model Semester {
+  id String @id @default(cuid())
+  programId String
+  number Int
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  divisions Division[]
+  subjects Subject[]
+  @@unique([programId, number])
+}
+
+model Division {
+  id String @id @default(cuid())
+  semesterId String
+  name String
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  students Student[]
+  timetable TimetableEntry[]
+  @@unique([semesterId, name])
+}
+
+model User {
+  id String @id @default(cuid())
+  institutionId String
+  departmentId String?
+  username String @unique
+  email String?
+  passwordHash String
+  role Role
+  active Boolean @default(true)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  faculty Faculty?
+  student Student?
+  parent Parent?
+  auditLogs AuditLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Faculty {
+  id String @id @default(cuid())
+  userId String @unique
+  employeeCode String @unique
+  name String
+  phone String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectMappings FacultySubject[]
+  timetable TimetableEntry[]
+  leavesApproved LeaveRequest[] @relation("LeaveApprover")
+  attendanceSessions AttendanceSession[]
+}
+
+model Student {
+  id String @id @default(cuid())
+  userId String @unique
+  divisionId String
+  enrollmentNo String @unique
+  rollNo String
+  name String
+  phone String?
+  parentPhone String?
+  division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentLinks ParentStudent[]
+  attendance AttendanceRecord[]
+  leaveRequests LeaveRequest[]
+  @@index([divisionId, rollNo])
+}
+
+model Parent {
+  id String @id @default(cuid())
+  userId String @unique
+  name String
+  phone String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  children ParentStudent[]
+}
+
+model ParentStudent {
+  parentId String
+  studentId String
+  parent Parent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@id([parentId, studentId])
+}
+
+model Subject {
+  id String @id @default(cuid())
+  departmentId String
+  semesterId String
+  code String
+  name String
+  credits Int @default(0)
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  facultyMappings FacultySubject[]
+  timetable TimetableEntry[]
+  attendanceSessions AttendanceSession[]
+  @@unique([semesterId, code])
+}
+
+model FacultySubject {
+  facultyId String
+  subjectId String
+  faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  @@id([facultyId, subjectId])
+}
+
+model TimetableEntry {
+  id String @id @default(cuid())
+  departmentId String
+  divisionId String
+  subjectId String
+  facultyId String
+  dayOfWeek Int
+  lectureNumber Int
+  startTime String
+  endTime String
+  room String?
+  active Boolean @default(true)
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  attendanceSessions AttendanceSession[]
+  @@unique([divisionId, dayOfWeek, lectureNumber])
+  @@index([facultyId, dayOfWeek])
+}
+
+model AttendanceSession {
+  id String @id @default(cuid())
+  timetableId String
+  facultyId String
+  subjectId String
+  date DateTime
+  startedAt DateTime?
+  submittedAt DateTime?
+  examType ExamType?
+  room String?
+  timetable TimetableEntry @relation(fields: [timetableId], references: [id], onDelete: Restrict)
+  faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  records AttendanceRecord[]
+  @@unique([timetableId, date])
+  @@index([facultyId, date])
+}
+
+model AttendanceRecord {
+  id String @id @default(cuid())
+  sessionId String
+  studentId String
+  status AttendanceStatus
+  markedAt DateTime @default(now())
+  correctionReason String?
+  session AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  @@unique([sessionId, studentId])
+  @@index([studentId, status])
+}
+
+model LeaveRequest {
+  id String @id @default(cuid())
+  studentId String
+  approverId String?
+  fromDate DateTime
+  toDate DateTime
+  reason String
+  documentUrl String?
+  status LeaveStatus @default(PENDING)
+  approvedAt DateTime?
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  approver Faculty? @relation("LeaveApprover", fields: [approverId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id String @id @default(cuid())
+  studentId String?
+  channel String
+  recipient String
+  template String
+  payload Json
+  status String @default("QUEUED")
+  providerMessageId String?
+  sentAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([status, createdAt])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  actorId String
+  action String
+  entity String
+  entityId String
+  reason String?
+  before Json?
+  after Json?
+  createdAt DateTime @default(now())
+  actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  @@index([entity, entityId, createdAt])
+}

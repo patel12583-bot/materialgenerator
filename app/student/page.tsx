@@ -1,0 +1,1 @@
+import Portal from "@/components/Portal"; export default function Student(){return <Portal role="Student" title="My attendance" subtitle="Track subject-wise attendance, timetable, leave requests and eligibility alerts."/>}
