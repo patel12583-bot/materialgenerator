@@ -15,7 +15,7 @@ export default function Home(){
  useEffect(()=>{try{const a=localStorage.getItem("eduforge_session");if(a){const parsed=JSON.parse(a);setAccount(parsed);setView(homeView(parsed.role))};const s=localStorage.getItem("eduforge_source");if(s)setSource(JSON.parse(s));const m=localStorage.getItem("eduforge_material");if(m)setMaterial(JSON.parse(m))}catch{}},[]);
  useEffect(()=>{if(source)localStorage.setItem("eduforge_source",JSON.stringify(source))},[source]);
  useEffect(()=>{if(material)localStorage.setItem("eduforge_material",JSON.stringify(material))},[material]);
- if(!account)return <Auth onLogin={a=>{localStorage.setItem("eduforge_session",JSON.stringify(a));setAccount(a);setView(homeView(a.role))}}/>;
+ if(!account)return <PortalLanding/>;
 
  async function upload(f:File){setBusy(true);setMessage("Reading your file…");try{const fd=new FormData();fd.append("file",f);const d=await api("/api/documents",{method:"POST",body:fd});setSource({name:d.name,text:d.text,chunks:d.chunks,size:d.size});setView("Documents");setMessage("Source ready.");}catch(e){setMessage(e instanceof Error?e.message:"Upload failed.")}finally{setBusy(false)}}
  async function generate(kind:string){if(!source){input.current?.click();return}setBusy(true);setMessage("Generating "+kind+"…");try{const d=await api("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:source.text,kind:kind==="quiz"?"mcq":kind,count:10,language:"English",difficulty:"Medium",length:"Detailed"})});setMaterial({kind,data:d.data,provider:d.provider});setView(kind==="mcq"?"MCQs":kind==="qa"?"Questions":"Study Materials");setMessage("Generated successfully.");}catch(e){setMessage(e instanceof Error?e.message:"Generation failed.")}finally{setBusy(false)}}
@@ -36,6 +36,8 @@ export default function Home(){
  {message&&<div className="toast"><span>{busy?"":<Check size={13}/>}</span>{message}<button onClick={()=>setMessage("")}><X size={13}/></button></div>}</section></div>
 }
 
+
+function PortalLanding(){return <main className="authPage auth-student"><div className="authShow"><div className="authBrand"><div>E</div><b>EduForge</b><span className="authRoleBadge">Secure Portals</span></div><div className="authCopy"><small>EDUFORGE ACCESS</small><h1>Choose your portal.</h1><p>Separate workspaces for Students, Admin / Faculty and Super Admin.</p></div></div><div className="authForm"><div className="portalIcon">E</div><small>PORTAL SELECTOR</small><h2>Where do you want to go?</h2><p>Select the access level for your EduForge workspace.</p><div style={{display:"grid",gap:10,marginTop:18}}>{[["Student Portal","/student/login","Study workspace"],["Admin / Faculty Portal","/admin/login","Moderation & content"],["Super Admin Portal","/portal-root/login","System governance"]].map(([title,url,desc])=><a key={url} href={url} style={{display:"block",padding:"15px 16px",border:"1px solid #e5e7eb",borderRadius:14,textDecoration:"none",color:"inherit",background:"#fff"}}><b style={{display:"block"}}>{title}</b><span style={{display:"block",fontSize:12,color:"#667085",marginTop:4}}>{desc}</span></a>)}</div><div className="demoLogin"><b>Direct portal URLs</b><span>/student/login · /admin/login · /portal-root/login</span></div></div></main>}
 
 function homeView(role:Role){return "Dashboard"}
 function isForbiddenView(view:string,role:Role){
