@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Upload, FileText, Brain, BarChart3, CheckCircle2, Sparkles, BookOpen,
   MessageSquare, Layers, Settings, ChevronRight, Download, RefreshCw,
@@ -27,7 +27,7 @@ export default function Home(){
  const[count,setCount]=useState(10);
  const[quizIndex,setQuizIndex]=useState(0),[score,setScore]=useState(0),[answered,setAnswered]=useState<number|null>(null),[quizDone,setQuizDone]=useState(false);
  const[authError,setAuthError]=useState("");
- const[showUpload,setShowUpload]=useState(false);
+ const uploadInputRef=useRef<HTMLInputElement>(null);
 
  useEffect(()=>{try{const a=localStorage.getItem("eduforge_session");const s=localStorage.getItem("eduforge_source");const m=localStorage.getItem("eduforge_material");if(a)setAccount(JSON.parse(a));if(s)setSource(JSON.parse(s));if(m)setMaterial(JSON.parse(m))}catch{}},[]);
  useEffect(()=>{if(source)localStorage.setItem("eduforge_source",JSON.stringify(source));},[source]);
@@ -87,7 +87,7 @@ export default function Home(){
   </aside>
   <section className="main">
    <header><div><label>WORKSPACE / {title.toUpperCase()}</label><h1>{title}</h1></div><div className="actions"><div className="sourcePill">{source?"● Source ready":"○ No source"}</div><button className="dark" onClick={()=>chooseFile()}><Upload size={16}/>Upload</button></div></header>
-   <input id="globalUpload" hidden type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.jpg,.jpeg,.png,.webp" onChange={e=>{const f=e.target.files?.[0]||null;setFile(f);setShowUpload(false);if(f)upload(f,tab)}}/>
+   <input ref={uploadInputRef} id="globalUpload" hidden type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.jpg,.jpeg,.png,.webp" onChange={e=>{const f=e.target.files?.[0]||null;if(f)upload(f,tab);e.currentTarget.value=""}}/>
    {tab==="Dashboard"&&<Dashboard source={source} file={file} busy={busy} msg={msg} count={count} setCount={setCount} chooseFile={chooseFile} upload={upload} generate={generate}/>}
    {tab==="Documents"&&<Documents source={source} chooseFile={chooseFile} busy={busy} msg={msg} file={file} upload={upload}/>}
    {tab==="Study Materials"&&<Study material={material} exportMaterial={exportMaterial} chooseFile={chooseFile} generate={generate}/>}
