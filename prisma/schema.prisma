@@ -101,7 +101,11 @@ model User {
   departmentId String?
   username String @unique
   email String?
-  passwordHash String
+  phone String?
+  passwordHash String?
+  googleId String? @unique
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
   role Role
   active Boolean @default(true)
   institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
