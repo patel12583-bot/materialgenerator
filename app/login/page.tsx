@@ -79,7 +79,7 @@ export default function LoginPage() {
             <button className="loginSubmit" disabled={busy}>{busy ? "Signing in…" : "Continue"} <ArrowRight size={17} /></button>
           </form>
 
-          <small className="loginFooter">Noble Group of Institutions · Mota Habipura, Dabhoi, Gujarat</small>
+          <div className="signupPrompt">New to Noble Attendance? <a href="/signup">Create account</a></div><small className="loginFooter">Noble Group of Institutions · Mota Habipura, Dabhoi, Gujarat</small>
         </div>
       </section>
     </main>
