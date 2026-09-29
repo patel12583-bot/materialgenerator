@@ -47,7 +47,7 @@ export default function LoginPage() {
       <section className="loginBrand">
         <div className="loginGlow" />
         <div className="loginBrandInner">
-          <div className="loginLogo"><GraduationCap size={27} /></div>
+          <div className="loginLogo imageLogo"><img src="/noble-logo.jpg" alt="Noble Group of Institutions logo" /></div>
           <span className="loginEyebrow">NOBLE GROUP OF INSTITUTIONS</span>
           <h1>Attendance,<br /><em>without the chaos.</em></h1>
           <p>One connected platform for faculty, students, parents, HODs and administrators.</p>
@@ -57,7 +57,7 @@ export default function LoginPage() {
 
       <section className="loginPanel">
         <div className="loginBox">
-          <div className="mobileLoginMark"><GraduationCap size={20} /></div>
+          <div className="mobileLoginMark imageLogo mobileLogo"><img src="/noble-logo.jpg" alt="Noble logo" /></div>
           <span className="loginEyebrow dark">WELCOME BACK</span>
           <h2>Sign in.</h2>
           <p className="loginMuted">Choose your portal and continue to Noble Attendance.</p>
