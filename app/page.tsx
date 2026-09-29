@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";\nimport { upload as blobUpload } from "@vercel/blob/client";
 import {
   Upload, FileText, Brain, BarChart3, CheckCircle2, Sparkles, BookOpen,
   MessageSquare, Layers, Settings, ChevronRight, Download, RefreshCw,
@@ -13,7 +13,7 @@ type Role="student"|"admin"|"super_admin";
 type Account={id:string,name:string,email:string,mobile:string,password:string,role:Role};
 
 const nav=[["Dashboard",BarChart3],["Documents",FileText],["Study Materials",BookOpen],["Questions",MessageSquare],["MCQs",Layers],["Quizzes",CheckCircle2],["AI Tutor",Brain],["Analytics",BarChart3]] as const;
-const roleLabel=(r:Role)=>r==="super_admin"?"Super Admin":r==="admin"?"Admin":"Student";
+const roleLabel=(r:Role)=>r==="super_admin"?"Super Admin":r==="admin"?"Admin":"Student";\nasync function safeJson(r:Response){const raw=await r.text();let data:any=null;try{data=raw?JSON.parse(raw):null}catch{}if(!data)throw new Error("Server returned an empty or non-JSON response (HTTP "+r.status+").");if(!r.ok)throw new Error(data.error||"Request failed (HTTP "+r.status+").");return data}
 
 export default function Home(){
  const[auth,setAuth]=useState<"login"|"register">("login");
@@ -45,7 +45,7 @@ export default function Home(){
    try{
      const fd=new FormData();fd.append("file",f);
      const r=await fetch("/api/documents",{method:"POST",body:fd});
-     const d=await r.json();if(!r.ok)throw new Error(d.error||"Upload failed");
+     const d=await safeJson(r);
      const s={id:d.id,name:d.name,text:d.text,chunks:d.chunks,size:d.size};
      setSource(s);setFile(f);setMsg("✓ Upload complete — "+d.chunks+" chunks ready.");
      if(target)setTab(target);
@@ -58,7 +58,7 @@ export default function Home(){
    setBusy(true);setMsg("Generating "+kind+"...");
    try{
      const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:source.text,kind,count,language,difficulty,length})});
-     const d=await r.json();if(!r.ok)throw new Error(d.error);
+     const d=await safeJson(r);
      setMaterial({kind,data:d.data,provider:d.provider,notice:d.notice});
      setMsg("✓ "+kind+" generated.");
      setTab(kind==="notes"?"Study Materials":kind==="qa"?"Questions":kind==="mcq"?"MCQs":"Study Materials");
@@ -120,7 +120,7 @@ function MCQs({mcqs,startQuiz,chooseFile}:any){return <section className="conten
 
 function Quiz({mcqs,quizIndex,score,answered,quizDone,answer,next,startQuiz,chooseFile}:any){return <section className="contentCard"><label>QUIZ MODE</label>{!mcqs.length?<><Empty text="No MCQs available. Upload a source and generate MCQs first."/><button className="dark" onClick={chooseFile}><Upload size={15}/>Upload source</button></>:quizDone?<div className="quizResult"><h2>Quiz complete</h2><p>Your score: <b>{score} / {mcqs.length}</b></p><button className="dark" onClick={startQuiz}>Retry</button></div>:<><div className="progress">Question {quizIndex+1} / {mcqs.length}</div><h2>{mcqs[quizIndex].question}</h2>{mcqs[quizIndex].options.map((o:string,i:number)=><button className={"quizOption "+(answered!==null&&i===Number(mcqs[quizIndex].answer)?"correct":"")} onClick={()=>answer(i)} key={i}>{String.fromCharCode(65+i)}. {o}</button>)}{answered!==null&&<><p className="explain">{mcqs[quizIndex].explanation}</p><button className="dark" onClick={next}>{quizIndex+1===mcqs.length?"Finish":"Next"}</button></>}</>}</section>}
 
-function Tutor({source,chooseFile}:any){const[q,setQ]=useState(""),[a,setA]=useState(""),[busy,setBusy]=useState(false);async function ask(){if(!source||!q.trim())return;setBusy(true);setA("");try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:source.text+"\n\nStudent question: "+q,kind:"qa",count:1})});const d=await r.json();if(!r.ok)throw new Error(d.error);setA(d.data?.[0]?.answer||d.data?.sections?.[0]?.content||"No answer returned.")}catch(e){setA(e instanceof Error?e.message:"Tutor failed")}finally{setBusy(false)}}return <section className="contentCard"><div className="tutorHead"><div><label>AI TUTOR</label><h2>Ask your uploaded source</h2></div><button className="dark" onClick={chooseFile}><Upload size={15}/>Upload source</button></div>{source?<p className="sourceHint">Using: <b>{source.name}</b></p>:<Empty text="Upload a PDF, PPT, DOCX, Excel, CSV, text or image first."/ >}<textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={source?"Example: Explain Unit 2 in easy language...":"Upload a source to enable AI Tutor."}/><button className="dark" disabled={!source||!q.trim()||busy} onClick={ask}>{busy?<><RefreshCw className="spin"/>Thinking...</>:"Ask AI"}</button>{a&&<article className="answer"><label>AI ANSWER</label><p>{a}</p></article>}</section>}
+function Tutor({source,chooseFile}:any){const[q,setQ]=useState(""),[a,setA]=useState(""),[busy,setBusy]=useState(false);async function ask(){if(!source||!q.trim())return;setBusy(true);setA("");try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:source.text+"\n\nStudent question: "+q,kind:"qa",count:1})});const d=await safeJson(r);setA(d.data?.[0]?.answer||d.data?.sections?.[0]?.content||"No answer returned.")}catch(e){setA(e instanceof Error?e.message:"Tutor failed")}finally{setBusy(false)}}return <section className="contentCard"><div className="tutorHead"><div><label>AI TUTOR</label><h2>Ask your uploaded source</h2></div><button className="dark" onClick={chooseFile}><Upload size={15}/>Upload source</button></div>{source?<p className="sourceHint">Using: <b>{source.name}</b></p>:<Empty text="Upload a PDF, PPT, DOCX, Excel, CSV, text or image first."/ >}<textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={source?"Example: Explain Unit 2 in easy language...":"Upload a source to enable AI Tutor."}/><button className="dark" disabled={!source||!q.trim()||busy} onClick={ask}>{busy?<><RefreshCw className="spin"/>Thinking...</>:"Ask AI"}</button>{a&&<article className="answer"><label>AI ANSWER</label><p>{a}</p></article>}</section>}
 
 function Analytics({source,material,mcqs,quizDone,score}:any){return <section className="contentCard"><label>WORKSPACE ANALYTICS</label><h2>Learning overview</h2><div className="stats"><div><b>{source?1:0}</b><span>Sources</span></div><div><b>{material?1:0}</b><span>Generated packs</span></div><div><b>{mcqs.length}</b><span>MCQs</span></div><div><b>{quizDone?score+"/"+mcqs.length:"—"}</b><span>Last quiz</span></div></div></section>}
 
