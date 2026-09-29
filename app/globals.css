@@ -31,3 +31,22 @@
 .imageLogo{overflow:hidden;background:#fff!important}
 .imageLogo img{width:100%;height:100%;object-fit:contain;display:block}
 .mobileLogo{padding:4px}
+
+.adminStructureGrid{display:grid;grid-template-columns:360px 1fr;gap:14px}
+.adminForm{display:grid;gap:7px}
+.adminForm label{font-size:10px;font-weight:700;color:#4b5563;margin-top:5px}
+.adminForm input,.adminForm select{height:40px;border:1px solid #e4e7ec;border-radius:8px;background:#fff;padding:0 10px;font-size:11px;color:#111827;outline:none}
+.adminForm input:focus,.adminForm select:focus{border-color:#9ca3af;box-shadow:0 0 0 3px #1118270a}
+.fullBtn{width:100%;justify-content:center;margin-top:8px}
+.secondaryBtn{border:1px solid #e4e7ec;background:#fff;border-radius:8px;padding:9px 12px;font-size:10px;font-weight:700;color:#4b5563;display:flex;align-items:center;gap:7px}
+.structureTree{display:grid;gap:10px}
+.treeDepartment{border:1px solid #eceef2;border-radius:11px;padding:12px;background:#fbfcfd}
+.treeTitle,.treeProgram,.treeSemester{display:flex;align-items:center;gap:8px}
+.treeTitle b,.treeProgram b{font-size:11px}.treeTitle small,.treeProgram small{display:block;font-size:8px;color:#9299a4;margin-top:2px}
+.treeIcon{width:28px;height:28px;border-radius:8px;background:#111827;color:#fff;display:grid;place-items:center}
+.treeProgram{margin:10px 0 0 37px;padding:9px;border-top:1px solid #eceef2}
+.treeSemester{margin:7px 0 0 59px;font-size:9px;color:#667085}
+.treeSemester small{margin-left:auto;color:#9299a4}
+.emptyState{padding:30px 10px;text-align:center;color:#9299a4;font-size:11px}
+@media(max-width:950px){.adminStructureGrid{grid-template-columns:1fr}}
+@media(max-width:520px){.treeProgram{margin-left:10px}.treeSemester{margin-left:28px}.treeSemester small{display:none}}
