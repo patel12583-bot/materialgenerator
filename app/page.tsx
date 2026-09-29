@@ -87,9 +87,9 @@ export default function Home(){
  if(!account)return <AuthScreen mode={auth} setMode={setAuth} onLogin={setAccount} error={authError} setError={setAuthError}/>;
 
  const title=tab==="Dashboard"?"Overview":tab;
- return <main className="app">
+ return <main className="app newApp">
   <aside>
-   <div className="brand"><div className="mark">E</div><div><b>EduForge AI</b><small>Learning workspace</small></div></div>
+   <div className="brand newBrand"><div className="mark">EF</div><div><b>EduForge</b><small>AI Study Studio</small></div></div>
    <nav>{nav.map(([n,I])=><button className={tab===n?"sel":""} onClick={()=>setTab(n)} key={n}><I size={17}/>{n}</button>)}</nav>
    <div className="asideBottom">
     {(account.role==="admin"||account.role==="super_admin")&&<button onClick={()=>setTab("Administration")}><Shield size={17}/>Administration</button>}
@@ -98,7 +98,7 @@ export default function Home(){
    </div>
   </aside>
   <section className="main">
-   <header><div><label>WORKSPACE / {title.toUpperCase()}</label><h1>{title}</h1></div><div className="actions"><div className="sourcePill">{source?"● Source ready":"○ No source"}</div><button className="dark" onClick={()=>chooseFile()}><Upload size={16}/>Upload</button></div></header>
+   <header className="topbar"><div><span className="eyebrow">EDUFORGE / {title.toUpperCase()}</span><h1>{title}</h1></div><div className="topActions"><span className="sourcePill">{source?"Source ready":"No source"}</span><button className="dark" onClick={()=>chooseFile()}><Upload size={16}/> Add source</button></div></header>
    <input ref={uploadInputRef} id="globalUpload" hidden type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.jpg,.jpeg,.png,.webp" onChange={e=>{const f=e.target.files?.[0]||null;if(f)upload(f,tab);e.currentTarget.value=""}}/>
    {tab==="Dashboard"&&<Dashboard source={source} file={file} busy={busy} msg={msg} count={count} setCount={setCount} language={language} setLanguage={setLanguage} difficulty={difficulty} setDifficulty={setDifficulty} length={length} setLength={setLength} chooseFile={chooseFile} upload={upload} generate={generate}/>}
    {tab==="Documents"&&<Documents source={source} chooseFile={chooseFile} busy={busy} msg={msg} file={file} upload={upload}/>}
