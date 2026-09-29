@@ -32,3 +32,5 @@ nav{display:grid;gap:5px}nav button,.asideBottom>button{border:0;background:tran
 @keyframes authCardIn{from{opacity:0;transform:translateX(25px)}to{opacity:1;transform:none}}@keyframes authBrandIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @media(max-width:900px){.authVisual{display:none}.authBrand>p{margin-top:18px}}
 @media(prefers-reduced-motion:reduce){.authVisual *,.authCard,.authBrand{animation:none!important}}
+
+.generatorControls{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px;padding:13px;background:#f1ede5;border:1px solid #e5ded3;border-radius:14px}.generatorControls>div{display:grid;gap:5px}.generatorControls span{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#8e877d;font-weight:800}.generatorControls select{min-width:105px;background:#fff;border:1px solid #ddd5ca;border-radius:9px;padding:8px 10px;color:#3d3934;font-size:10px}.generatorControls+ .generator{margin-top:10px}
