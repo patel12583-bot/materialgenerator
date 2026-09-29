@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
@@ -26,6 +27,7 @@
     "prisma": "6.19.0",
     "typescript": "latest",
     "tailwindcss": "latest",
-    "@tailwindcss/postcss": "latest"
+    "@tailwindcss/postcss": "latest",
+    "tsx": "latest"
   }
 }
