@@ -1,0 +1,3 @@
+import{NextResponse}from"next/server";
+export async function GET(){return NextResponse.json({ok:true,quiz:{title:"Study Quiz",questions:[]}})}
+export async function POST(req:Request){try{const b=await req.json();const qs=Array.isArray(b.questions)?b.questions:[];if(!qs.length)return NextResponse.json({error:"Generate MCQs first."},{status:400});return NextResponse.json({ok:true,quiz:{title:b.title||"Study Quiz",questions:qs}})}catch{return NextResponse.json({error:"Quiz creation failed."},{status:400})}}
