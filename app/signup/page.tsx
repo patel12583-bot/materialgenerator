@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { ArrowLeft, ArrowRight, GraduationCap, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, GraduationCap, Mail, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 
 export default function SignupPage(){
   const [enrollment,setEnrollment]=useState("");
@@ -56,7 +56,13 @@ export default function SignupPage(){
         <a className="backLink" href="/login"><ArrowLeft size={14}/> Back to sign in</a>
         <span className="loginEyebrow dark">STUDENT ACCOUNT</span>
         <h2>Create account.</h2>
-        <p className="loginMuted">Use the enrollment number already registered by Noble administration.</p>
+        <p className="loginMuted">Choose the account type. Student activation is self-service; Faculty and Admin accounts are created by an existing Admin.</p>
+
+        <div className="roleGrid accountRoleInfo">
+          <div className="roleChoice active"><GraduationCap size={15}/> Student</div>
+          <div className="roleChoice disabled"><UsersRound size={15}/> Faculty · Admin-managed</div>
+          <div className="roleChoice disabled"><ShieldCheck size={15}/> Admin · Admin-managed</div>
+        </div>
 
         <form onSubmit={submit}>
           <label>Full name</label>
@@ -81,7 +87,7 @@ export default function SignupPage(){
           <button className="loginSubmit" disabled={busy}>{busy?"Creating…":"Create account"}<ArrowRight size={17}/></button>
         </form>
 
-        <small className="loginFooter">Only students already registered by Noble administration can activate an account.</small>
+        <small className="loginFooter">Faculty and Admin: ask an existing Noble Admin to create your account from Admin → Accounts.</small>
       </div>
     </section>
   </main>;
