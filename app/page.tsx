@@ -2,8 +2,8 @@ import { ArrowRight, BarChart3, Bell, CalendarDays, CheckCircle2, ClipboardCheck
 import Link from "next/link";
 
 const features = [
-  { icon: ClipboardCheck, title: "Smart Attendance", text: "Timetable-driven attendance with Present, Absent, Leave, Exam and Late status.", href: "/faculty" },
-  { icon: CalendarDays, title: "Master Timetable", text: "Monday–Saturday lectures, divisions, subjects, rooms and faculty assignments.", href: "/admin" },
+  { icon: ClipboardCheck, title: "Smart Attendance", text: "Timetable-driven attendance with Present, Absent, Leave, Exam and Late status.", href: "/login?role=FACULTY" },
+  { icon: CalendarDays, title: "Master Timetable", text: "Monday–Saturday lectures, divisions, subjects, rooms and faculty assignments.", href: "/login?role=ADMIN" },
   { icon: BarChart3, title: "Reports & Defaulters", text: "Subject-wise and overall attendance with 75% eligibility monitoring.", href: "/admin" },
   { icon: Bell, title: "Parent Alerts", text: "Attendance notification pipeline for SMS and WhatsApp alerts.", href: "/admin" },
 ];
@@ -11,7 +11,7 @@ const features = [
 const portals = [
   { icon: ShieldCheck, title: "Admin", text: "Departments, students, faculty, accounts and master timetable.", href: "/admin" },
   { icon: Users, title: "Faculty", text: "Today's lectures and fast classroom attendance marking.", href: "/faculty" },
-  { icon: GraduationCap, title: "Student", text: "Attendance, timetable, leave requests and notifications.", href: "/student" },
+  { icon: GraduationCap, title: "Student", text: "Attendance, timetable, leave requests and notifications.", href: "/login?role=STUDENT" },
 ];
 
 export default function Home() {
