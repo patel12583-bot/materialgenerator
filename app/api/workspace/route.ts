@@ -85,8 +85,8 @@ export async function GET(req: Request) {
     const defaulters = students.map(s => {
       const total=s.attendance.length, present=s.attendance.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length;
       return {id:s.id,name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,program:s.division.semester.program.code,semester:s.division.semester.number,division:s.division.name,present,total,percentage:pct(present,total)};
-    }).filter(x=>x.total>0 && x.percentage<75).sort((a,b)=>a.percentage-b.percentage);
-    return NextResponse.json({defaulters});
+    }).filter(x=>x.total>0 && x.percentage<threshold).sort((a,b)=>a.percentage-b.percentage);
+    return NextResponse.json({defaulters,threshold});
   }
 
   if (page === "Reports" || page === "My Attendance") {
@@ -220,7 +220,7 @@ export async function POST(req: Request) {
     }
 
     if(action==="institution-settings" && adminRoles.includes(session.role)) {
-      const item=await prisma.institution.update({where:{id:session.institutionId},data:{name:String(body.name||"").trim(),campusName:String(body.campusName||"").trim()||null,address:String(body.address||"").trim()||null,phone:String(body.phone||"").trim()||null,website:String(body.website||"").trim()||null,academicYear:String(body.academicYear||"2026-27").trim()}});
+      const item=await prisma.institution.update({where:{id:session.institutionId},data:{name:String(body.name||"").trim(),campusName:String(body.campusName||"").trim()||null,address:String(body.address||"").trim()||null,phone:String(body.phone||"").trim()||null,website:String(body.website||"").trim()||null,academicYear:String(body.academicYear||"2026-27").trim(),minimumAttendance:Math.min(100,Math.max(1,Number(body.minimumAttendance)||75)),attendanceGraceMinutes:Math.min(60,Math.max(0,Number(body.attendanceGraceMinutes)||10)),timezone:"Asia/Kolkata"}});
       return NextResponse.json({item});
     }
 
