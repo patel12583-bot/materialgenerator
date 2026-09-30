@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 function allowed(role:string){ return role==="ADMIN" || role==="SUPER_ADMIN"; }
 
 export async function GET(req:Request){
-  const session=await getSession();
+  const session=await getCurrentUser();
   if(!session || !allowed(session.role)) return NextResponse.json({error:"Unauthorized"},{status:401});
   const url=new URL(req.url);
   const q=(url.searchParams.get("q")||"").trim();
@@ -33,7 +33,7 @@ export async function GET(req:Request){
 }
 
 export async function POST(req:Request){
-  const session=await getSession();
+  const session=await getCurrentUser();
   if(!session || !allowed(session.role)) return NextResponse.json({error:"Unauthorized"},{status:401});
 
   try{
