@@ -79,3 +79,10 @@
 .modalCard .cardHead h2{font-size:18px}
 .formTwo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:800px){.studentToolbar{align-items:stretch;flex-wrap:wrap}.adminSearch{max-width:none;flex-basis:100%}.studentCount{margin-left:0}.studentAdminTable{overflow-x:auto}.studentAdminHead,.studentAdminRow{min-width:760px}.formTwo{grid-template-columns:1fr}}
+
+.accountRoleInfo{margin:12px 0 16px}
+.accountRoleInfo .roleChoice{display:flex;align-items:center;justify-content:center;gap:5px}
+.roleChoice.disabled{opacity:.62;background:#f7f8fa;color:#667085;cursor:not-allowed}
+.accountTabs{display:flex;gap:6px;flex:1}
+.accountTab{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:8px 11px;font-size:10px;font-weight:700;color:#667085;display:flex;align-items:center;gap:6px;cursor:pointer}
+.accountTab.active{background:#111827;border-color:#111827;color:#fff}
