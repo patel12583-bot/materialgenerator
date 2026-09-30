@@ -13,7 +13,7 @@ export async function GET(){
     prisma.faculty.findMany({
       where:{user:{institutionId:session.institutionId}},
       orderBy:{name:"asc"},
-      include:{user:{select:{username:true,email:true,phone:true,active:true,department:{select:{name:true,code:true}}}}}
+      include:{user:{select:{id:true,username:true,email:true,phone:true,active:true,department:{select:{name:true,code:true}}}}}
     }),
     prisma.user.findMany({
       where:{institutionId:session.institutionId,role:"ADMIN"},
@@ -36,6 +36,25 @@ export async function POST(req:Request){
 
   try{
     const body=await req.json();
+    const action=String(body.action||"").toLowerCase();
+    if(action==="toggle" || action==="reset-password"){
+      const targetId=String(body.userId||"");
+      if(!targetId || targetId===session.userId) return NextResponse.json({error:"Invalid account."},{status:400});
+      const target=await prisma.user.findFirst({where:{id:targetId,institutionId:session.institutionId,role:{in:["ADMIN","FACULTY"]}}});
+      if(!target) return NextResponse.json({error:"Account not found."},{status:404});
+      if(action==="toggle"){
+        const updated=await prisma.user.update({where:{id:target.id},data:{active:!target.active}});
+        await prisma.auditLog.create({data:{actorId:session.userId,action:updated.active?"ACTIVATE_ACCOUNT":"DEACTIVATE_ACCOUNT",entity:"User",entityId:updated.id,before:{active:target.active},after:{active:updated.active}}});
+        return NextResponse.json({ok:true,active:updated.active});
+      }
+      const newPassword=String(body.password||"");
+      if(newPassword.length<8) return NextResponse.json({error:"New password must contain at least 8 characters."},{status:400});
+      const hash=await bcrypt.hash(newPassword,12);
+      await prisma.user.update({where:{id:target.id},data:{passwordHash:hash}});
+      await prisma.auditLog.create({data:{actorId:session.userId,action:"RESET_PASSWORD",entity:"User",entityId:target.id,after:{passwordReset:true}}});
+      return NextResponse.json({ok:true});
+    }
+
     const type=String(body.type||"").toUpperCase();
     const username=String(body.username||"").trim();
     const password=String(body.password||"");
