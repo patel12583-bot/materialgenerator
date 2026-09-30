@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 function allowed(role:string){ return role==="ADMIN" || role==="SUPER_ADMIN"; }
 
