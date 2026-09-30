@@ -32,6 +32,7 @@ function canRead(role: string, page: string) {
     Administrators: ["ADMIN"],
     Institutions: ["ADMIN"],
     Security: ["ADMIN"],
+    "Exam Attendance": ["FACULTY"],
   };
   return rules[page]?.includes(role) ?? false;
 }
@@ -42,6 +43,16 @@ export async function GET(req: Request) {
   const page = new URL(req.url).searchParams.get("page") || "Overview";
   const institutionId = session.institutionId;
   if (!canRead(session.role, page)) return NextResponse.json({error:"Forbidden"},{status:403});
+
+  if (page === "Exam Attendance") {
+    const faculty=await prisma.faculty.findUnique({where:{userId:session.userId}});
+    if(!faculty) return NextResponse.json({error:"Faculty profile not found."},{status:404});
+    const [divisions,subjects]=await Promise.all([
+      prisma.division.findMany({where:{semester:{program:{department:{institutionId}}}},orderBy:[{semester:{program:{code:"asc"}}},{semester:{number:"asc"}},{name:"asc"}],include:{semester:{include:{program:true}}}}),
+      prisma.subject.findMany({where:{department:{institutionId},facultyMappings:{some:{facultyId:faculty.id}}},orderBy:{code:"asc"}})
+    ]);
+    return NextResponse.json({divisions,subjects});
+  }
 
   if (page === "Overview") {
     const [students,faculty,subjects,timetable,leaves,notifications] = await Promise.all([
@@ -175,22 +186,116 @@ export async function POST(req: Request) {
     if(action==="create-timetable" && adminRoles.includes(session.role)) {
       const division=await prisma.division.findFirst({where:{id:String(body.divisionId),semester:{program:{department:{institutionId:session.institutionId}}}}});
       const subject=await prisma.subject.findFirst({where:{id:String(body.subjectId),department:{institutionId:session.institutionId}}});
-      const faculty=await prisma.faculty.findFirst({where:{id:String(body.facultyId),user:{institutionId:session.institutionId}}});
+      const faculty=await prisma.faculty.findFirst({where:{id:String(body.facultyId),user:{institutionId:session.institutionId,active:true}}});
       if(!division||!subject||!faculty) return NextResponse.json({error:"Invalid division, subject or faculty."},{status:400});
       if(subject.semesterId !== division.semesterId) return NextResponse.json({error:"Subject must belong to the selected division semester."},{status:400});
-      const dayOfWeek = Number(body.dayOfWeek); const lectureNumber = Number(body.lectureNumber);
-      if(!Number.isInteger(dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 6 || !Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > 10) return NextResponse.json({error:"Invalid day or lecture number."},{status:400});
-      const startTime=String(body.startTime||""); const endTime=String(body.endTime||"");
+      const dayOfWeek=Number(body.dayOfWeek), lectureNumber=Number(body.lectureNumber), startTime=String(body.startTime||""), endTime=String(body.endTime||"");
+      const standardSlots:any={1:["09:00","10:00"],2:["10:00","11:00"],3:["11:15","12:15"],4:["12:15","13:15"],5:["14:00","15:00"],6:["15:00","16:00"]};
+      if(!Number.isInteger(dayOfWeek)||dayOfWeek<1||dayOfWeek>6||!Number.isInteger(lectureNumber)||lectureNumber<1||lectureNumber>6) return NextResponse.json({error:"Invalid day or lecture number."},{status:400});
       if(!/^\d{2}:\d{2}$/.test(startTime)||!/^\d{2}:\d{2}$/.test(endTime)||startTime>=endTime) return NextResponse.json({error:"Invalid lecture time."},{status:400});
-      const standardSlots:any = {1:["09:00","10:00"],2:["10:00","11:00"],3:["11:15","12:15"],4:["12:15","13:15"],5:["14:00","15:00"],6:["15:00","16:00"]};
-      if(standardSlots[lectureNumber] && (startTime!==standardSlots[lectureNumber][0] || endTime!==standardSlots[lectureNumber][1])) return NextResponse.json({error:"Lecture time must match the Noble standard timetable slot."},{status:400});
-      const mapping = await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
+      if(standardSlots[lectureNumber]&&(startTime!==standardSlots[lectureNumber][0]||endTime!==standardSlots[lectureNumber][1])) return NextResponse.json({error:"Lecture time must match the Noble standard timetable slot."},{status:400});
+      const mapping=await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
       if(!mapping) return NextResponse.json({error:"Faculty is not assigned to this subject."},{status:400});
-      const facultyConflict = await prisma.timetableEntry.findFirst({where:{facultyId:faculty.id,dayOfWeek,lectureNumber,active:true}});
+      const facultyConflict=await prisma.timetableEntry.findFirst({where:{facultyId:faculty.id,dayOfWeek,lectureNumber,active:true}});
       if(facultyConflict) return NextResponse.json({error:"This faculty member is already assigned to another division in this lecture slot."},{status:409});
-      const item=await prisma.timetableEntry.create({data:{departmentId:subject.departmentId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek,lectureNumber,startTime,endTime,room:String(body.room||"")||null}});
+      const room=String(body.room||"").trim()||null;
+      const roomConflict=room?await prisma.timetableEntry.findFirst({where:{departmentId:subject.departmentId,dayOfWeek,lectureNumber,room,active:true}}):null;
+      if(roomConflict) return NextResponse.json({error:"This room is already occupied in that lecture slot."},{status:409});
+      const item=await prisma.timetableEntry.create({data:{departmentId:subject.departmentId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek,lectureNumber,startTime,endTime,room}});
       await prisma.auditLog.create({data:{actorId:session.userId,action:"CREATE",entity:"TimetableEntry",entityId:item.id,after:item}});
       return NextResponse.json({item},{status:201});
+    }
+
+    if(action==="update-timetable" && adminRoles.includes(session.role)) {
+      const id=String(body.id||"");
+      const existing=await prisma.timetableEntry.findFirst({where:{id,department:{institutionId:session.institutionId}}});
+      if(!existing) return NextResponse.json({error:"Timetable entry not found."},{status:404});
+      const division=await prisma.division.findFirst({where:{id:String(body.divisionId),semester:{program:{department:{institutionId:session.institutionId}}}}});
+      const subject=await prisma.subject.findFirst({where:{id:String(body.subjectId),department:{institutionId:session.institutionId}}});
+      const faculty=await prisma.faculty.findFirst({where:{id:String(body.facultyId),user:{institutionId:session.institutionId,active:true}}});
+      if(!division||!subject||!faculty||subject.semesterId!==division.semesterId) return NextResponse.json({error:"Invalid timetable assignment."},{status:400});
+      const dayOfWeek=Number(body.dayOfWeek), lectureNumber=Number(body.lectureNumber), startTime=String(body.startTime||""), endTime=String(body.endTime||""), room=String(body.room||"").trim()||null;
+      const standardSlots:any={1:["09:00","10:00"],2:["10:00","11:00"],3:["11:15","12:15"],4:["12:15","13:15"],5:["14:00","15:00"],6:["15:00","16:00"]};
+      if(!Number.isInteger(dayOfWeek)||dayOfWeek<1||dayOfWeek>6||!Number.isInteger(lectureNumber)||lectureNumber<1||lectureNumber>6||!/^\d{2}:\d{2}$/.test(startTime)||!/^\d{2}:\d{2}$/.test(endTime)||startTime>=endTime) return NextResponse.json({error:"Invalid timetable values."},{status:400});
+      if(standardSlots[lectureNumber]&&(startTime!==standardSlots[lectureNumber][0]||endTime!==standardSlots[lectureNumber][1])) return NextResponse.json({error:"Lecture time must match the Noble standard timetable slot."},{status:400});
+      const mapping=await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
+      if(!mapping) return NextResponse.json({error:"Faculty is not assigned to this subject."},{status:400});
+      const conflict=await prisma.timetableEntry.findFirst({where:{id:{not:id},OR:[{facultyId:faculty.id,dayOfWeek,lectureNumber,active:true},{divisionId:division.id,dayOfWeek,lectureNumber,active:true},...(room?[{departmentId:subject.departmentId,dayOfWeek,lectureNumber,room,active:true}]:[])]}});
+      if(conflict) return NextResponse.json({error:"Timetable conflict: faculty, division or room is already booked."},{status:409});
+      const item=await prisma.timetableEntry.update({where:{id},data:{divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek,lectureNumber,startTime,endTime,room}});
+      await prisma.auditLog.create({data:{actorId:session.userId,action:"UPDATE",entity:"TimetableEntry",entityId:id,before:existing,after:item}});
+      return NextResponse.json({item});
+    }
+
+    if(action==="delete-timetable" && adminRoles.includes(session.role)) {
+      const id=String(body.id||"");
+      const existing=await prisma.timetableEntry.findFirst({where:{id,department:{institutionId:session.institutionId}}});
+      if(!existing) return NextResponse.json({error:"Timetable entry not found."},{status:404});
+      const sessions=await prisma.attendanceSession.count({where:{timetableId:id}});
+      if(sessions) return NextResponse.json({error:"This lecture has attendance history, so it cannot be deleted. Disable it instead to preserve records."},{status:409});
+      await prisma.timetableEntry.update({where:{id},data:{active:false}});
+      await prisma.auditLog.create({data:{actorId:session.userId,action:"DELETE",entity:"TimetableEntry",entityId:id,before:existing,after:{active:false}}});
+      return NextResponse.json({ok:true});
+    }
+
+    if(action==="create-substitute" && adminRoles.includes(session.role)) {
+      const timetableId=String(body.timetableId||""), dateKey=String(body.dateKey||"");
+      const entry=await prisma.timetableEntry.findFirst({where:{id:timetableId,department:{institutionId:session.institutionId},active:true}});
+      const substitute=await prisma.faculty.findFirst({where:{id:String(body.substituteFacultyId),user:{institutionId:session.institutionId,active:true}}});
+      if(!entry||!substitute) return NextResponse.json({error:"Invalid timetable or substitute faculty."},{status:400});
+      if(substitute.id===entry.facultyId) return NextResponse.json({error:"Substitute faculty must be different from the assigned faculty."},{status:400});
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return NextResponse.json({error:"Valid substitute date is required."},{status:400});
+      const conflict=await prisma.timetableEntry.findFirst({where:{facultyId:substitute.id,dayOfWeek:entry.dayOfWeek,lectureNumber:entry.lectureNumber,active:true,id:{not:entry.id}}});
+      if(conflict) return NextResponse.json({error:"Substitute faculty already has another lecture in that slot."},{status:409});
+      const item=await prisma.substituteAssignment.upsert({where:{timetableId_dateKey:{timetableId,dateKey}},update:{substituteFacultyId:substitute.id,reason:String(body.reason||"").trim()||null,active:true},create:{timetableId,dateKey,mainFacultyId:entry.facultyId,substituteFacultyId:substitute.id,reason:String(body.reason||"").trim()||null}});
+      await prisma.auditLog.create({data:{actorId:session.userId,action:"CREATE",entity:"SubstituteAssignment",entityId:item.id,after:item}});
+      return NextResponse.json({item},{status:201});
+    }
+
+    if(action==="delete-substitute" && adminRoles.includes(session.role)) {
+      const id=String(body.id||"");
+      const item=await prisma.substituteAssignment.findFirst({where:{id,timetable:{department:{institutionId:session.institutionId}}}});
+      if(!item) return NextResponse.json({error:"Substitute assignment not found."},{status:404});
+      await prisma.substituteAssignment.update({where:{id},data:{active:false}});
+      return NextResponse.json({ok:true});
+    }
+
+    if(action==="create-exam-session" && session.role==="FACULTY") {
+      const faculty=await prisma.faculty.findUnique({where:{userId:session.userId}});
+      if(!faculty) return NextResponse.json({error:"Faculty profile not found."},{status:404});
+      const division=await prisma.division.findFirst({where:{id:String(body.divisionId),semester:{program:{department:{institutionId:session.institutionId}}}}});
+      const subject=await prisma.subject.findFirst({where:{id:String(body.subjectId),department:{institutionId:session.institutionId},facultyMappings:{some:{facultyId:faculty.id}}}});
+      const examType=String(body.examType) as any;
+      const room=String(body.room||"").trim();
+      if(!division||!subject||!room||!["MID_SEM","FINAL_EXAM","UNIT_TEST"].includes(examType)) return NextResponse.json({error:"Valid exam type, division, subject and room are required."},{status:400});
+      if(subject.semesterId!==division.semesterId) return NextResponse.json({error:"Subject must belong to the selected division."},{status:400});
+      const now=new Date(), dateKey=String(body.dateKey||new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).format(now));
+      const item=await prisma.examSession.upsert({where:{divisionId_subjectId_dateKey_examType:{divisionId:division.id,subjectId:subject.id,dateKey,examType}},update:{facultyId:faculty.id,room,startedAt:new Date(),submittedAt:null},create:{institutionId:session.institutionId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,examType,date:now,dateKey,room,startedAt:new Date()}});
+      const students=await prisma.student.findMany({where:{divisionId:division.id},select:{id:true}});
+      await prisma.examRecord.createMany({data:students.map(s=>({sessionId:item.id,studentId:s.id,status:"PRESENT"})),skipDuplicates:true});
+      const records=await prisma.examRecord.findMany({where:{sessionId:item.id},include:{student:{select:{id:true,enrollmentNo:true,rollNo:true,name:true}}},orderBy:{student:{rollNo:"asc"}}});
+      return NextResponse.json({sessionId:item.id,records});
+    }
+
+    if(action==="submit-exam" && session.role==="FACULTY") {
+      const faculty=await prisma.faculty.findUnique({where:{userId:session.userId}});
+      if(!faculty) return NextResponse.json({error:"Faculty profile not found."},{status:404});
+      const id=String(body.sessionId||"");
+      const exam=await prisma.examSession.findFirst({where:{id,facultyId:faculty.id,institutionId:session.institutionId}});
+      if(!exam) return NextResponse.json({error:"Exam session not found."},{status:404});
+      if(exam.submittedAt) return NextResponse.json({error:"Exam attendance already submitted."},{status:409});
+      const rows=Array.isArray(body.records)?body.records:[];
+      await prisma.$transaction(async tx=>{
+        const claim=await tx.examSession.updateMany({where:{id,facultyId:faculty.id,submittedAt:null},data:{submittedAt:new Date()}});
+        if(!claim.count) throw new Error("Exam attendance already submitted.");
+        for(const row of rows){
+          const status=String(row?.status||"");
+          if(!["PRESENT","ABSENT","EXAM_ONLY"].includes(status)) continue;
+          await tx.examRecord.updateMany({where:{sessionId:id,studentId:String(row.studentId)},data:{status:status as any,markedAt:new Date()}});
+        }
+        await tx.auditLog.create({data:{actorId:session.userId,action:"EXAM_ATTENDANCE_SUBMIT",entity:"ExamSession",entityId:id,after:{examType:exam.examType,room:exam.room}}});
+      });
+      return NextResponse.json({ok:true});
     }
 
     if(action==="leave" && session.role==="STUDENT") {
