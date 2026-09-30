@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const statuses = ["PRESENT", "ABSENT", "EXAM_ONLY", "ON_LEAVE", "LATE_PRESENT"] as const;
+function indiaNow(){const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return `${p.hour}:${p.minute}`;}
+function minutes(value:string){const [h,m]=value.split(":").map(Number);return h*60+m;}
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
@@ -29,6 +31,9 @@ export async function POST(req: Request) {
     if (attendance.submittedAt) {
       return NextResponse.json({ error: "This attendance session has already been submitted." }, { status: 409 });
     }
+    const nowMinutes=minutes(indiaNow());
+    const endMinutes=minutes(attendance.timetable.endTime);
+    if(nowMinutes> endMinutes) return NextResponse.json({error:`Attendance submission is locked after ${attendance.timetable.endTime}.`},{status:409});
 
     const allowed = new Map(attendance.records.map(record => [record.studentId, record]));
     const bounds = {
