@@ -101,9 +101,17 @@ export async function GET(req: Request) {
     const students = await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId}}}}},include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null},status:{notIn:["EXAM_ONLY","ON_LEAVE"]}}}}});
     const defaulters = students.map(s => {
       const total=s.attendance.length, present=s.attendance.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length;
-      return {id:s.id,name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,program:s.division.semester.program.code,semester:s.division.semester.number,division:s.division.name,present,total,percentage:pct(present,total)};
+      return {id:s.id,name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,parentPhone:s.parentPhone,program:s.division.semester.program.code,semester:s.division.semester.number,division:s.division.name,present,total,percentage:pct(present,total)};
     }).filter(x=>x.total>0 && x.percentage<threshold).sort((a,b)=>a.percentage-b.percentage);
-    return NextResponse.json({defaulters,threshold});
+    const subjectMap=new Map<string,any>();
+    for(const s of students) for(const a of s.attendance){
+      if(a.status==="EXAM_ONLY"||a.status==="ON_LEAVE") continue;
+      const key=s.id+"|"+a.session.subject.id; const row=subjectMap.get(key)||{studentId:s.id,studentName:s.name,enrollmentNo:s.enrollmentNo,subjectId:a.session.subject.id,subject:a.session.subject.name,code:a.session.subject.code,present:0,total:0};
+      row.total++; if(a.status==="PRESENT"||a.status==="LATE_PRESENT") row.present++; subjectMap.set(key,row);
+    }
+    const subjectDefaulters=[...subjectMap.values()].map(x=>({...x,percentage:pct(x.present,x.total)})).filter(x=>x.total>0&&x.percentage<threshold).sort((a,b)=>a.percentage-b.percentage);
+    const warningHistory=await prisma.notification.findMany({where:{template:"DEFAULTER_WARNING",student:{division:{semester:{program:{department:{institutionId}}}}}},orderBy:{createdAt:"desc"},take:100});
+    return NextResponse.json({defaulters,subjectDefaulters,warningHistory,threshold});
   }
 
   if (page === "Reports" || page === "My Attendance") {
@@ -307,6 +315,26 @@ export async function POST(req: Request) {
         await tx.auditLog.create({data:{actorId:session.userId,action:"EXAM_ATTENDANCE_SUBMIT",entity:"ExamSession",entityId:id,after:{examType:exam.examType,room:exam.room}}});
       });
       return NextResponse.json({ok:true});
+    }
+
+    if(action==="queue-defaulter-warnings" && adminRoles.includes(session.role)) {
+      const policy=await prisma.institution.findUnique({where:{id:session.institutionId},select:{minimumAttendance:true}});
+      const threshold=policy?.minimumAttendance??75;
+      const students=await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}},include:{attendance:{where:{session:{examType:null},status:{notIn:["EXAM_ONLY","ON_LEAVE"]}}}}});
+      const fresh:any[]=[];
+      for(const s of students){
+        const total=s.attendance.length, present=s.attendance.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length, percentage=pct(present,total);
+        if(!s.parentPhone||!total||percentage>=threshold) continue;
+        const key=`DEFAULTER_WARNING:${s.id}:${new Date().toISOString().slice(0,10)}`;
+        const exists=await prisma.notification.findFirst({where:{dedupeKey:key}});
+        if(exists) continue;
+        const payload={studentName:s.name,percentage,threshold,message:`નમસ્તે વાલીશ્રી, આપના પુત્ર/પુત્રી ${s.name} ની attendance ${percentage}% છે. Minimum required ${threshold}% છે. - Noble Group of Institutions`};
+        fresh.push({studentId:s.id,channel:"SMS",recipient:s.parentPhone,template:"DEFAULTER_WARNING",dedupeKey:key+":SMS",payload});
+        fresh.push({studentId:s.id,channel:"WHATSAPP",recipient:s.parentPhone,template:"DEFAULTER_WARNING",dedupeKey:key+":WHATSAPP",payload});
+      }
+      if(fresh.length) await prisma.notification.createMany({data:fresh});
+      await prisma.auditLog.create({data:{actorId:session.userId,action:"QUEUE_DEFAULTER_WARNINGS",entity:"Notification",entityId:session.institutionId,after:{count:fresh.length}}});
+      return NextResponse.json({queued:fresh.length});
     }
 
     if(action==="leave" && session.role==="STUDENT") {
