@@ -42,15 +42,13 @@ export async function getSession(): Promise<Session | null> {
   try {
     const token = (await cookies()).get(COOKIE_NAME)?.value;
     if (!token) return null;
-
     const { payload } = await jwtVerify(token, secret());
+
     if (
       typeof payload.userId !== "string" ||
       typeof payload.role !== "string" ||
       typeof payload.institutionId !== "string"
-    ) {
-      return null;
-    }
+    ) return null;
 
     return {
       userId: payload.userId,
@@ -68,7 +66,7 @@ export async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;
 
-  const user = await prisma.user.findFirst({
+  return prisma.user.findFirst({
     where: {
       id: session.userId,
       institutionId: session.institutionId,
@@ -86,8 +84,6 @@ export async function getCurrentUser() {
       active: true,
     },
   });
-
-  return user ?? null;
 }
 
 export async function clearSession() {
