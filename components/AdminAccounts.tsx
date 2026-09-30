@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, RefreshCw, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { KeyRound, Plus, RefreshCw, ShieldCheck, UserRound, UsersRound, Power } from "lucide-react";
 
 type Department={id:string;name:string;code:string};
 type Faculty={id:string;name:string;employeeCode:string;user:{username:string;email:string|null;phone:string|null;active:boolean;department:Department|null}};
@@ -30,6 +30,19 @@ export default function AdminAccounts(){
  useEffect(()=>{load()},[]);
 
  function reset(){setForm({name:"",employeeCode:"",username:"",password:"",email:"",phone:"",departmentId:""});setOpen(false)}
+ async function accountAction(userId:string, action:"toggle"|"reset-password"){
+  const password = action==="reset-password" ? window.prompt("Enter the new password (minimum 8 characters):","") : undefined;
+  if(action==="reset-password" && !password) return;
+  setBusy(true); setMessage("");
+  try{
+    const r=await fetch("/api/admin/accounts",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action,userId,password})});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||"Unable to update account.");
+    setMessage(action==="toggle"?(d.active?"Account activated.":"Account deactivated."):"Password reset successfully.");
+    await load();
+  }catch(e){setMessage(e instanceof Error?e.message:"Unable to update account.");}
+  finally{setBusy(false)}
+ }
+
  async function create(e:React.FormEvent){
   e.preventDefault();setBusy(true);setMessage("");
   try{
@@ -58,8 +71,8 @@ export default function AdminAccounts(){
   <div className="card studentAdminTable">
    <div className="studentAdminHead"><span>NAME / USERNAME</span><span>LOGIN</span><span>DEPARTMENT</span><span>CONTACT</span><span>STATUS</span></div>
    {loading?<div className="emptyState">Loading accounts…</div>:tab==="FACULTY"?
-    (faculty.length?faculty.map(f=><div className="studentAdminRow" key={f.id}><div><b>{f.name}</b><small>{f.employeeCode}</small></div><span>{f.user.username}</span><span>{f.user.department?.code||"—"}</span><span><small>{f.user.email||"No email"}</small><small>{f.user.phone||"No mobile"}</small></span><span className="accountReady">{f.user.active?"Active":"Inactive"}</span></div>):<div className="emptyState">No faculty accounts yet.</div>)
-    :(admins.length?admins.map(a=><div className="studentAdminRow" key={a.id}><div><b>{a.username}</b><small>Administrator</small></div><span>{a.username}</span><span>{a.department?.code||"All departments"}</span><span><small>{a.email||"No email"}</small><small>{a.phone||"No mobile"}</small></span><span className="accountReady">{a.active?"Active":"Inactive"}</span></div>):<div className="emptyState">No additional admin accounts yet.</div>)}
+    (faculty.length?faculty.map(f=><div className="studentAdminRow" key={f.id}><div><b>{f.name}</b><small>{f.employeeCode}</small></div><span>{f.user.username}</span><span>{f.user.department?.code||"—"}</span><span><small>{f.user.email||"No email"}</small><small>{f.user.phone||"No mobile"}</small></span><span className="accountReady">{f.user.active?"Active":"Inactive"}</span><div className="rowActions"><button className="textBtn" title={f.user.active?"Deactivate account":"Activate account"} onClick={()=>accountAction(f.user.id,"toggle")}><Power size={14}/></button><button className="textBtn" title="Reset password" onClick={()=>accountAction(f.user.id,"reset-password")}><KeyRound size={14}/></button></div></div>):<div className="emptyState">No faculty accounts yet.</div>)
+    :(admins.length?admins.map(a=><div className="studentAdminRow" key={a.id}><div><b>{a.username}</b><small>Administrator</small></div><span>{a.username}</span><span>{a.department?.code||"All departments"}</span><span><small>{a.email||"No email"}</small><small>{a.phone||"No mobile"}</small></span><span className="accountReady">{a.active?"Active":"Inactive"}</span><div className="rowActions"><button className="textBtn" title={a.active?"Deactivate account":"Activate account"} onClick={()=>accountAction(a.id,"toggle")}><Power size={14}/></button><button className="textBtn" title="Reset password" onClick={()=>accountAction(a.id,"reset-password")}><KeyRound size={14}/></button></div></div>):<div className="emptyState">No additional admin accounts yet.</div>)}
   </div>
 
   {open&&<div className="modalBackdrop" onMouseDown={()=>setOpen(false)}><div className="modalCard" onMouseDown={e=>e.stopPropagation()}>
