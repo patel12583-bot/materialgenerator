@@ -10,7 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "vercel-build": "prisma generate && prisma db push && npm run db:seed && next build"
+    "vercel-build": "prisma generate && prisma db push && next build"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
@@ -27,6 +27,7 @@
     "@types/react-dom": "latest",
     "prisma": "6.19.0",
     "typescript": "latest",
+    "skipLibCheck": true,
     "tailwindcss": "latest",
     "@tailwindcss/postcss": "latest",
     "tsx": "latest"
