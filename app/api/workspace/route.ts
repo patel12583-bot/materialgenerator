@@ -173,6 +173,8 @@ export async function POST(req: Request) {
       if(subject.semesterId !== division.semesterId) return NextResponse.json({error:"Subject must belong to the selected division semester."},{status:400});
       const dayOfWeek = Number(body.dayOfWeek); const lectureNumber = Number(body.lectureNumber);
       if(!Number.isInteger(dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 6 || !Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > 10) return NextResponse.json({error:"Invalid day or lecture number."},{status:400});
+      const startTime=String(body.startTime||""); const endTime=String(body.endTime||"");
+      if(!/^\d{2}:\d{2}$/.test(startTime)||!/^\d{2}:\d{2}$/.test(endTime)||startTime>=endTime) return NextResponse.json({error:"Invalid lecture time."},{status:400});
       const mapping = await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
       if(!mapping) return NextResponse.json({error:"Faculty is not assigned to this subject."},{status:400});
       const item=await prisma.timetableEntry.create({data:{departmentId:subject.departmentId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek:Number(body.dayOfWeek),lectureNumber:Number(body.lectureNumber),startTime:String(body.startTime),endTime:String(body.endTime),room:String(body.room||"")||null}});
