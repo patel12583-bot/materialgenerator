@@ -11,6 +11,10 @@ export async function GET(){
  const session=await getCurrentUser();
  if(!session||session.role!=="FACULTY") return NextResponse.json({error:"Unauthorized"},{status:401});
  const now=indiaNow();
- const lectures=await prisma.timetableEntry.findMany({where:{faculty:{userId:session.userId},dayOfWeek:now.day,active:true},include:{subject:true,division:{include:{semester:{include:{program:true}}}}},orderBy:{lectureNumber:"asc"}});
+ const faculty=await prisma.faculty.findUnique({where:{userId:session.userId}});
+ if(!faculty) return NextResponse.json({error:"Faculty profile not found."},{status:404});
+ const direct=await prisma.timetableEntry.findMany({where:{facultyId:faculty.id,dayOfWeek:now.day,active:true,substituteAssignments:{none:{dateKey:now.dateKey,active:true}}},include:{subject:true,division:{include:{semester:{include:{program:true}}}}},orderBy:{lectureNumber:"asc"}});
+ const substitutes=await prisma.timetableEntry.findMany({where:{dayOfWeek:now.day,active:true,substituteAssignments:{some:{dateKey:now.dateKey,active:true,substituteFacultyId:faculty.id}}},include:{subject:true,division:{include:{semester:{include:{program:true}}}}},orderBy:{lectureNumber:"asc"}});
+ const lectures=[...direct,...substitutes].sort((a,b)=>a.lectureNumber-b.lectureNumber);
  return NextResponse.json({date:now.dateKey,currentTime:now.time,dayOfWeek:now.day,lectures:lectures.map(l=>({id:l.id,lectureNumber:l.lectureNumber,startTime:l.startTime,endTime:l.endTime,room:l.room,subject:{id:l.subject.id,code:l.subject.code,name:l.subject.name},class:{program:l.division.semester.program.name,semester:l.division.semester.number,division:l.division.name}}))});
 }
