@@ -27,7 +27,6 @@
     "@types/react-dom": "latest",
     "prisma": "6.19.0",
     "typescript": "latest",
-    "skipLibCheck": true,
     "tailwindcss": "latest",
     "@tailwindcss/postcss": "latest",
     "tsx": "latest"
