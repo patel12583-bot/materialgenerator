@@ -58,3 +58,24 @@
 .signupMethods{grid-template-columns:repeat(3,1fr)}
 .signupInfo{border:1px solid #e6e8ec;background:#f8fafc;border-radius:10px;padding:13px;font-size:10px;line-height:1.6;color:#667085;margin:15px 0}
 .signupMessage{margin-top:12px}
+
+.studentToolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:12px}
+.adminSearch{height:38px;flex:1;max-width:520px;border:1px solid #e4e7ec;border-radius:9px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 11px;color:#98a0ad}
+.adminSearch input{border:0;outline:0;background:transparent;width:100%;font-size:11px}
+.studentCount{margin-left:auto;display:flex;align-items:center;gap:6px;color:#7b8492;font-size:10px}
+.studentAdminTable{padding:0;overflow:hidden}
+.studentAdminHead,.studentAdminRow{display:grid;grid-template-columns:1.35fr 1fr 1.1fr 1fr 90px;gap:14px;align-items:center;padding:12px 17px}
+.studentAdminHead{font-size:8px;letter-spacing:.1em;color:#9aa2ae;background:#fafbfc}
+.studentAdminRow{border-top:1px solid #eef0f3;min-height:64px;font-size:10px;color:#4b5563}
+.studentAdminRow b,.studentAdminRow small{display:block}
+.studentAdminRow b{font-size:11px;color:#20242c}
+.studentAdminRow small{font-size:9px;color:#9299a4;margin-top:3px}
+.studentAdminRow>span:nth-child(4) small+small{margin-top:4px}
+.accountReady,.accountPending{font-size:9px;font-weight:800}
+.accountReady{color:#16855b}.accountPending{color:#b7791f}
+.adminMessage{margin-bottom:12px}
+.modalBackdrop{position:fixed;inset:0;background:#11182766;backdrop-filter:blur(5px);z-index:100;display:grid;place-items:center;padding:20px}
+.modalCard{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;box-shadow:0 25px 80px #0002}
+.modalCard .cardHead h2{font-size:18px}
+.formTwo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:800px){.studentToolbar{align-items:stretch;flex-wrap:wrap}.adminSearch{max-width:none;flex-basis:100%}.studentCount{margin-left:0}.studentAdminTable{overflow-x:auto}.studentAdminHead,.studentAdminRow{min-width:760px}.formTwo{grid-template-columns:1fr}}
