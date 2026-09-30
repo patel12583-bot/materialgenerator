@@ -23,9 +23,23 @@ export async function POST(req: Request){
       return NextResponse.json({error:"This portal is not available for sign in."},{status:403});
     }
 
-    const user=await prisma.user.findUnique({
-      where:{username:String(username).trim()}
-    });
+    const loginId=String(username).trim();
+    if(!loginId){
+      return NextResponse.json({error:"Username or enrollment number is required."},{status:400});
+    }
+
+    const user = normalized === "STUDENT"
+      ? await prisma.user.findFirst({
+          where:{
+            OR:[
+              {username:loginId},
+              {student:{is:{enrollmentNo:loginId}}}
+            ]
+          }
+        })
+      : await prisma.user.findUnique({
+          where:{username:loginId}
+        });
 
     if(!user || !user.active || user.role !== normalized){
       return NextResponse.json({error:"Invalid credentials or portal."},{status:401});
