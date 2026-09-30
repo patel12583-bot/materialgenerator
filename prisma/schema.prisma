@@ -282,7 +282,6 @@ model Notification {
   providerMessageId String?
   sentAt DateTime?
   createdAt DateTime @default(now())
-  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
   @@index([status, createdAt])
   @@index([studentId, createdAt])
 }
