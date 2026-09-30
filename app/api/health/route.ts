@@ -18,18 +18,54 @@ export async function GET() {
 
   try {
     await prisma.$queryRaw`SELECT 1`;
-    const institution = await prisma.institution.findUnique({
-      where: { id: "noble-group-2026" },
-      select: { id: true, name: true, academicYear: true }
-    });
+
+    const [institution, users] = await Promise.all([
+      prisma.institution.findUnique({
+        where: { id: "noble-group-2026" },
+        select: { id: true, name: true, academicYear: true }
+      }),
+      prisma.user.findMany({
+        where: {
+          username: { in: ["admin", "faculty", "NOBLE-BCA-001", "student"] }
+        },
+        select: { username: true, role: true, active: true, passwordHash: true }
+      })
+    ]);
+
+    const account = (role:string, usernames:string[]) => {
+      const user = users.find(x => usernames.includes(x.username) && x.role === role);
+      return {
+        exists: Boolean(user),
+        active: Boolean(user?.active),
+        passwordConfigured: Boolean(user?.passwordHash)
+      };
+    };
+
+    const accounts = {
+      admin: account("ADMIN", ["admin"]),
+      faculty: account("FACULTY", ["faculty"]),
+      student: account("STUDENT", ["NOBLE-BCA-001", "student"])
+    };
+
+    const seedReady = Boolean(
+      institution &&
+      accounts.admin.exists &&
+      accounts.faculty.exists &&
+      accounts.student.exists &&
+      accounts.admin.passwordConfigured &&
+      accounts.faculty.passwordConfigured &&
+      accounts.student.passwordConfigured
+    );
 
     return NextResponse.json({
       ok: true,
       database: true,
       seeded: Boolean(institution),
+      seedReady,
       sessionSecretConfigured: hasSessionSecret,
       demoPasswordConfigured: hasDemoPassword,
-      institution: institution ?? null
+      institution: institution ?? null,
+      accounts
     });
   } catch (error) {
     console.error("health database error", error);
