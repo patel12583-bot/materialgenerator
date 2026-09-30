@@ -49,9 +49,6 @@ model Institution {
   minimumAttendance Int @default(75)
   attendanceGraceMinutes Int @default(10)
   timezone String @default("Asia/Kolkata")
-  minimumAttendance Int @default(75)
-  attendanceGraceMinutes Int @default(10)
-  timezone String @default("Asia/Kolkata")
   departments Department[]
   users User[]
   createdAt DateTime @default(now())
