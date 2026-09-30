@@ -5,7 +5,7 @@ import Portal from "@/components/Portal";
 
 export default async function Student(){
   let session=await getSession();
-  if(!session){
+  if(!session || session.role!=="STUDENT"){
     const user=await prisma.user.findFirst({where:{role:"STUDENT",active:true},orderBy:{createdAt:"asc"}});
     if(user){
       await createSession({userId:user.id,role:user.role,institutionId:user.institutionId,departmentId:user.departmentId});
