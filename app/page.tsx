@@ -41,7 +41,7 @@ export default function Home() {
       <section className="homeBody">
         <div className="homeIntro">
           <div><span className="eyebrow">SYSTEM OVERVIEW</span><h2>Noble Attendance.</h2><p>A clean central workspace for the complete attendance lifecycle.</p></div>
-          <div className="homeStatus"><span /> Direct workspace access</div>
+          <div className="homeStatus"><span /> Secure workspace access</div>
         </div>
 
         <div className="homeFeatureGrid">
@@ -49,7 +49,7 @@ export default function Home() {
             <Link className="homeFeature homeClickable" href={href} key={title}>
               <div className="homeFeatureIcon"><Icon size={18} /></div>
               <h3>{title}</h3><p>{text}</p>
-              <div className="homeCardAction">Open workspace <ArrowRight size={14} /></div>
+              <div className="homeCardAction">Sign in securely <ArrowRight size={14} /></div>
             </Link>
           ))}
         </div>
@@ -62,7 +62,7 @@ export default function Home() {
         <div className="homePortalGrid">
           {portals.map(({ icon: Icon, title, text, href }) => (
             <Link className="homePortal homeClickable" href={href} key={title}>
-              <div className="homePortalTop"><div className="homePortalIcon"><Icon size={19} /></div><span>OPEN PORTAL</span></div>
+              <div className="homePortalTop"><div className="homePortalIcon"><Icon size={19} /></div><span>SECURE PORTAL</span></div>
               <h3>{title}</h3><p>{text}</p>
               <div className="homePortalLine"><span>Open workspace</span><ArrowRight size={15} /></div>
             </Link>
@@ -71,7 +71,7 @@ export default function Home() {
 
         <footer className="homeFooter">
           <div><b>Noble Group of Institutions</b><span>Attendance Management System</span></div>
-          <small>Academic Year 2026–27 · Direct Access</small>
+          <small>Academic Year 2026–27 · Secure access</small>
         </footer>
       </section>
     </main>
