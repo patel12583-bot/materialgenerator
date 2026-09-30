@@ -15,6 +15,7 @@ enum Role {
   STUDENT
   PARENT
 }
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
@@ -22,11 +23,13 @@ enum AttendanceStatus {
   ON_LEAVE
   LATE_PRESENT
 }
+
 enum LeaveStatus {
   PENDING
   APPROVED
   REJECTED
 }
+
 enum ExamType {
   MID_SEM
   FINAL_EXAM
@@ -43,6 +46,9 @@ model Institution {
   website String?
   logoUrl String?
   academicYear String @default("2026-27")
+  minimumAttendance Int @default(75)
+  attendanceGraceMinutes Int @default(10)
+  timezone String @default("Asia/Kolkata")
   departments Department[]
   users User[]
   createdAt DateTime @default(now())
@@ -206,6 +212,7 @@ model TimetableEntry {
   faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   attendanceSessions AttendanceSession[]
   @@unique([divisionId, dayOfWeek, lectureNumber])
+  @@unique([facultyId, dayOfWeek, lectureNumber])
   @@index([facultyId, dayOfWeek])
 }
 
@@ -255,6 +262,7 @@ model LeaveRequest {
   approver Faculty? @relation("LeaveApprover", fields: [approverId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([studentId, status, fromDate, toDate])
 }
 
 model Notification {
@@ -263,12 +271,15 @@ model Notification {
   channel String
   recipient String
   template String
+  dedupeKey String @unique
   payload Json
   status String @default("QUEUED")
   providerMessageId String?
   sentAt DateTime?
   createdAt DateTime @default(now())
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
   @@index([status, createdAt])
+  @@index([studentId, createdAt])
 }
 
 model AuditLog {
