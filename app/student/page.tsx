@@ -4,6 +4,6 @@ import Portal from "@/components/Portal";
 
 export default async function Student(){
   const session=await getSession();
-  if(!session || session.role!=="STUDENT") redirect("/login");
-  return <Portal role="Student" title="My attendance" subtitle="Track subject-wise attendance, timetable, leave requests and eligibility alerts."/>;
+  if(!session || session.role!=="STUDENT") redirect("/");
+  return <Portal role="Student" title="My attendance" subtitle="Track subject-wise attendance, timetable, leave requests and eligibility alerts." />;
 }
