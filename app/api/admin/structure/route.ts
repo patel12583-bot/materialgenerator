@@ -7,7 +7,7 @@ function allowed(role: string) {
 }
 
 export async function GET() {
-  const session = await getSession();
+  const session = await getCurrentUser();
   if (!session || !allowed(session.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -34,7 +34,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getSession();
+  const session = await getCurrentUser();
   if (!session || !allowed(session.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
