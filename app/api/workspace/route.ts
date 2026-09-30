@@ -168,6 +168,9 @@ export async function POST(req: Request) {
       const subject=await prisma.subject.findFirst({where:{id:String(body.subjectId),department:{institutionId:session.institutionId}}});
       const faculty=await prisma.faculty.findFirst({where:{id:String(body.facultyId),user:{institutionId:session.institutionId}}});
       if(!division||!subject||!faculty) return NextResponse.json({error:"Invalid division, subject or faculty."},{status:400});
+      if(subject.semesterId !== division.semesterId) return NextResponse.json({error:"Subject must belong to the selected division semester."},{status:400});
+      const mapping = await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
+      if(!mapping) return NextResponse.json({error:"Faculty is not assigned to this subject."},{status:400});
       const item=await prisma.timetableEntry.create({data:{departmentId:subject.departmentId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek:Number(body.dayOfWeek),lectureNumber:Number(body.lectureNumber),startTime:String(body.startTime),endTime:String(body.endTime),room:String(body.room||"")||null}});
       await prisma.auditLog.create({data:{actorId:session.userId,action:"CREATE",entity:"TimetableEntry",entityId:item.id,after:item}});
       return NextResponse.json({item},{status:201});
