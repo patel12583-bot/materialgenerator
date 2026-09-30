@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function indiaNow(){
@@ -8,7 +8,7 @@ function indiaNow(){
  return {dateKey:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`,day:new Date(`${p.year}-${p.month}-${p.day}T00:00:00+05:30`).getDay()};
 }
 export async function GET(){
- const session=await getSession();
+ const session=await getCurrentUser();
  if(!session||session.role!=="FACULTY") return NextResponse.json({error:"Unauthorized"},{status:401});
  const now=indiaNow();
  const lectures=await prisma.timetableEntry.findMany({where:{faculty:{userId:session.userId},dayOfWeek:now.day,active:true},include:{subject:true,division:{include:{semester:{include:{program:true}}}}},orderBy:{lectureNumber:"asc"}});
