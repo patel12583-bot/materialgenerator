@@ -1,16 +1,17 @@
 import { ArrowRight, BarChart3, Bell, CalendarDays, CheckCircle2, ClipboardCheck, GraduationCap, ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
 
 const features = [
-  { icon: ClipboardCheck, title: "Smart Attendance", text: "Timetable-driven attendance with Present, Absent, Leave, Exam and Late status." },
-  { icon: CalendarDays, title: "Master Timetable", text: "Monday–Saturday lectures, divisions, subjects, rooms and faculty assignments." },
-  { icon: BarChart3, title: "Reports & Defaulters", text: "Subject-wise and overall attendance with 75% eligibility monitoring." },
-  { icon: Bell, title: "Parent Alerts", text: "Attendance notification pipeline for SMS and WhatsApp alerts." },
+  { icon: ClipboardCheck, title: "Smart Attendance", text: "Timetable-driven attendance with Present, Absent, Leave, Exam and Late status.", href: "/faculty" },
+  { icon: CalendarDays, title: "Master Timetable", text: "Monday–Saturday lectures, divisions, subjects, rooms and faculty assignments.", href: "/admin" },
+  { icon: BarChart3, title: "Reports & Defaulters", text: "Subject-wise and overall attendance with 75% eligibility monitoring.", href: "/admin" },
+  { icon: Bell, title: "Parent Alerts", text: "Attendance notification pipeline for SMS and WhatsApp alerts.", href: "/admin" },
 ];
 
 const portals = [
-  { icon: ShieldCheck, title: "Admin", text: "Departments, students, faculty, accounts and master timetable." },
-  { icon: Users, title: "Faculty", text: "Today's lectures and fast classroom attendance marking." },
-  { icon: GraduationCap, title: "Student", text: "Attendance, timetable, leave requests and notifications." },
+  { icon: ShieldCheck, title: "Admin", text: "Departments, students, faculty, accounts and master timetable.", href: "/admin" },
+  { icon: Users, title: "Faculty", text: "Today's lectures and fast classroom attendance marking.", href: "/faculty" },
+  { icon: GraduationCap, title: "Student", text: "Attendance, timetable, leave requests and notifications.", href: "/student" },
 ];
 
 export default function Home() {
@@ -25,7 +26,6 @@ export default function Home() {
           </div>
           <div className="homeYear">ACADEMIC YEAR <b>2026–27</b></div>
         </header>
-
         <div className="homeHeroContent">
           <span className="homeEyebrow">NOBLE ATTENDANCE MANAGEMENT SYSTEM</span>
           <h1>Attendance,<br /><em>without the chaos.</em></h1>
@@ -40,49 +40,38 @@ export default function Home() {
 
       <section className="homeBody">
         <div className="homeIntro">
-          <div>
-            <span className="eyebrow">SYSTEM OVERVIEW</span>
-            <h2>Noble Attendance.</h2>
-            <p>A clean central workspace for the complete attendance lifecycle.</p>
-          </div>
-          <div className="homeStatus"><span /> System workspace ready</div>
+          <div><span className="eyebrow">SYSTEM OVERVIEW</span><h2>Noble Attendance.</h2><p>A clean central workspace for the complete attendance lifecycle.</p></div>
+          <div className="homeStatus"><span /> Direct workspace access</div>
         </div>
 
         <div className="homeFeatureGrid">
-          {features.map(({ icon: Icon, title, text }) => (
-            <article className="homeFeature" key={title}>
+          {features.map(({ icon: Icon, title, text, href }) => (
+            <Link className="homeFeature homeClickable" href={href} key={title}>
               <div className="homeFeatureIcon"><Icon size={18} /></div>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </article>
+              <h3>{title}</h3><p>{text}</p>
+              <div className="homeCardAction">Open workspace <ArrowRight size={14} /></div>
+            </Link>
           ))}
         </div>
 
         <div className="homeSectionHead">
-          <div>
-            <span className="eyebrow">PORTALS</span>
-            <h2>One system. Three workspaces.</h2>
-          </div>
+          <div><span className="eyebrow">PORTALS</span><h2>One system. Three workspaces.</h2></div>
           <span className="homeNote">Noble Group of Institutions · Mota Habipura, Dabhoi, Gujarat</span>
         </div>
 
         <div className="homePortalGrid">
-          {portals.map(({ icon: Icon, title, text }) => (
-            <article className="homePortal" key={title}>
-              <div className="homePortalTop">
-                <div className="homePortalIcon"><Icon size={19} /></div>
-                <span>PORTAL</span>
-              </div>
-              <h3>{title}</h3>
-              <p>{text}</p>
-              <div className="homePortalLine"><span>Workspace</span><ArrowRight size={15} /></div>
-            </article>
+          {portals.map(({ icon: Icon, title, text, href }) => (
+            <Link className="homePortal homeClickable" href={href} key={title}>
+              <div className="homePortalTop"><div className="homePortalIcon"><Icon size={19} /></div><span>OPEN PORTAL</span></div>
+              <h3>{title}</h3><p>{text}</p>
+              <div className="homePortalLine"><span>Open workspace</span><ArrowRight size={15} /></div>
+            </Link>
           ))}
         </div>
 
         <footer className="homeFooter">
           <div><b>Noble Group of Institutions</b><span>Attendance Management System</span></div>
-          <small>Academic Year 2026–27</small>
+          <small>Academic Year 2026–27 · Direct Access</small>
         </footer>
       </section>
     </main>
