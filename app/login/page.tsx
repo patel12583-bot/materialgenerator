@@ -1,15 +1,12 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { GraduationCap, Lock, UserRound, ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, Lock, ShieldCheck, UserRound } from "lucide-react";
 
 const roles = [
   { value: "ADMIN", label: "Admin" },
-  { value: "HOD", label: "HOD" },
   { value: "FACULTY", label: "Faculty" },
   { value: "STUDENT", label: "Student" },
-  { value: "PARENT", label: "Parent" },
-  { value: "SUPER_ADMIN", label: "Super Admin" },
 ];
 
 export default function LoginPage() {
@@ -18,6 +15,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const usernameLabel = role === "STUDENT" ? "Enrollment Number" : "Username";
+  const usernamePlaceholder = role === "STUDENT" ? "Enter enrollment number" : "Enter username";
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -50,7 +50,7 @@ export default function LoginPage() {
           <div className="loginLogo imageLogo"><img src="/noble-logo.jpg" alt="Noble Group of Institutions logo" /></div>
           <span className="loginEyebrow">NOBLE GROUP OF INSTITUTIONS</span>
           <h1>Attendance,<br /><em>without the chaos.</em></h1>
-          <p>One connected platform for faculty, students, parents, HODs and administrators.</p>
+          <p>One connected platform for administrators, faculty and students.</p>
           <div className="loginTrust"><ShieldCheck size={16} /> Secure role-based access · Academic Year 2026–27</div>
         </div>
       </section>
@@ -71,15 +71,16 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={submit}>
-            <label>Username / Enrollment</label>
-            <div className="loginInput"><UserRound size={17} /><input value={username} onChange={e => setUsername(e.target.value)} placeholder="Enter username" autoComplete="username" /></div>
+            <label>{usernameLabel}</label>
+            <div className="loginInput"><UserRound size={17} /><input required value={username} onChange={e => setUsername(e.target.value)} placeholder={usernamePlaceholder} autoComplete="username" /></div>
             <label>Password</label>
-            <div className="loginInput"><Lock size={17} /><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" autoComplete="current-password" /></div>
+            <div className="loginInput"><Lock size={17} /><input required type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" autoComplete="current-password" /></div>
             {error && <div className="loginError">{error}</div>}
             <button className="loginSubmit" disabled={busy}>{busy ? "Signing in…" : "Continue"} <ArrowRight size={17} /></button>
           </form>
 
-          <div className="signupPrompt">New to Noble Attendance? <a href="/signup">Create account</a></div><small className="loginFooter">Noble Group of Institutions · Mota Habipura, Dabhoi, Gujarat</small>
+          {role === "STUDENT" && <div className="signupPrompt">New student? <a href="/signup">Create account</a></div>}
+          <small className="loginFooter">Noble Group of Institutions · Mota Habipura, Dabhoi, Gujarat</small>
         </div>
       </section>
     </main>
