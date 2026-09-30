@@ -1,5 +1,5 @@
-import Portal from "@/components/Portal";
+import { redirect } from "next/navigation";
 
 export default function Parent(){
-  return <Portal role="Parent" title="Student attendance" subtitle="View your child's attendance status and receive absence, leave and eligibility notifications." />;
+  redirect("/login");
 }
