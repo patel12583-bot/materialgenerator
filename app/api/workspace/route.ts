@@ -48,7 +48,7 @@ export async function GET(req: Request) {
       prisma.student.count({where:{division:{semester:{program:{department:{institutionId}}}}}}),
       prisma.faculty.count({where:{user:{institutionId}}}),
       prisma.subject.count({where:{department:{institutionId}}}),
-      prisma.timetableEntry.count({where:{department:{institutionId},active:true}}),
+      prisma.timetableEntry.count({where:{department:{institutionId},active:true,...(session.role==="FACULTY"?{faculty:{userId:session.id}}:{})}}),
       prisma.leaveRequest.count({where:{student:{division:{semester:{program:{department:{institutionId}}}}},status:"PENDING"}}),
       prisma.notification.count({where:{student:{division:{semester:{program:{department:{institutionId}}}}},status:"QUEUED"}})
     ]);
