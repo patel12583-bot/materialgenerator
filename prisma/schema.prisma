@@ -51,6 +51,7 @@ model Institution {
   timezone String @default("Asia/Kolkata")
   departments Department[]
   users User[]
+  examSessions ExamSession[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -98,6 +99,7 @@ model Division {
   semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
   students Student[]
   timetable TimetableEntry[]
+  examSessions ExamSession[]
   @@unique([semesterId, name])
 }
 
@@ -135,6 +137,7 @@ model Faculty {
   timetable TimetableEntry[]
   leavesApproved LeaveRequest[] @relation("LeaveApprover")
   attendanceSessions AttendanceSession[]
+  substituteAssignments SubstituteAssignment[] @relation("SubstituteFaculty")
 }
 
 model Student {
@@ -150,6 +153,7 @@ model Student {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   parentLinks ParentStudent[]
   attendance AttendanceRecord[]
+  examAttendance ExamRecord[]
   leaveRequests LeaveRequest[]
   notifications Notification[]
   @@index([divisionId, rollNo])
@@ -184,6 +188,7 @@ model Subject {
   facultyMappings FacultySubject[]
   timetable TimetableEntry[]
   attendanceSessions AttendanceSession[]
+  examSessions ExamSession[]
   @@unique([semesterId, code])
 }
 
@@ -212,6 +217,7 @@ model TimetableEntry {
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   attendanceSessions AttendanceSession[]
+  substituteAssignments SubstituteAssignment[]
   @@unique([divisionId, dayOfWeek, lectureNumber])
   @@index([facultyId, dayOfWeek, lectureNumber])
 }
@@ -294,4 +300,55 @@ model AuditLog {
   createdAt DateTime @default(now())
   actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
   @@index([entity, entityId, createdAt])
+}
+
+
+model SubstituteAssignment {
+  id String @id @default(cuid())
+  timetableId String
+  dateKey String
+  mainFacultyId String
+  substituteFacultyId String
+  reason String?
+  active Boolean @default(true)
+  timetable TimetableEntry @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  mainFaculty Faculty @relation("MainFaculty", fields: [mainFacultyId], references: [id], onDelete: Restrict)
+  substituteFaculty Faculty @relation("SubstituteFaculty", fields: [substituteFacultyId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([timetableId, dateKey])
+  @@index([substituteFacultyId, dateKey])
+}
+
+model ExamSession {
+  id String @id @default(cuid())
+  institutionId String
+  divisionId String
+  subjectId String
+  facultyId String
+  examType ExamType
+  date DateTime
+  dateKey String
+  room String
+  startedAt DateTime?
+  submittedAt DateTime?
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  division Division @relation(fields: [divisionId], references: [id], onDelete: Restrict)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  records ExamRecord[]
+  @@unique([divisionId, subjectId, dateKey, examType])
+  @@index([facultyId, dateKey])
+}
+
+model ExamRecord {
+  id String @id @default(cuid())
+  sessionId String
+  studentId String
+  status AttendanceStatus
+  markedAt DateTime @default(now())
+  session ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  @@unique([sessionId, studentId])
+  @@index([studentId, status])
 }
