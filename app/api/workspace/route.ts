@@ -144,12 +144,13 @@ export async function POST(req: Request) {
       return NextResponse.json({item},{status:201});
     }
 
-    if(action==="leave-status" && adminRoles.includes(session.role)) {
+    if(action==="leave-status" && (adminRoles.includes(session.role) || session.role==="FACULTY" || session.role==="HOD")) {
       const id=String(body.id), status=String(body.status);
       if(!["APPROVED","REJECTED"].includes(status)) return NextResponse.json({error:"Invalid status."},{status:400});
       const leave=await prisma.leaveRequest.findFirst({where:{id,student:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}}}});
       if(!leave) return NextResponse.json({error:"Leave request not found."},{status:404});
-      const item=await prisma.leaveRequest.update({where:{id},data:{status:status as any,approverId:session.role==="ADMIN"?undefined:undefined,approvedAt:status==="APPROVED"?new Date():null}});
+      const approver = session.role==="FACULTY" ? await prisma.faculty.findUnique({where:{userId:session.userId}}) : null;
+      const item=await prisma.leaveRequest.update({where:{id},data:{status:status as any,approverId:approver?.id ?? null,approvedAt:status==="APPROVED"?new Date():null}});
       await prisma.auditLog.create({data:{actorId:session.userId,action:status==="APPROVED"?"APPROVE":"REJECT",entity:"LeaveRequest",entityId:id,after:item}});
       return NextResponse.json({item});
     }
