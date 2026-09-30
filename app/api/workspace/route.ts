@@ -92,14 +92,26 @@ export async function GET(req: Request) {
   if (page === "Reports" || page === "My Attendance") {
     const studentWhere:any = {division:{semester:{program:{department:{institutionId}}}}};
     if(session.role==="STUDENT") studentWhere.userId=session.userId;
-    const students = await prisma.student.findMany({where:studentWhere,include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null}}}}});
+    const students = await prisma.student.findMany({where:studentWhere,include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null}},include:{session:{include:{subject:true}}}}}});
     const rows=students.map(s=>{
       const regular=s.attendance.filter(a=>a.status!=="EXAM_ONLY"&&a.status!=="ON_LEAVE");
       const present=regular.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length;
       const leave=s.attendance.filter(a=>a.status==="ON_LEAVE").length;
       return {id:s.id,name:s.name,enrollmentNo:s.enrollmentNo,program:s.division.semester.program.code,semester:s.division.semester.number,division:s.division.name,present,total:regular.length,leave,percentage:pct(present,regular.length)};
     });
-    return NextResponse.json({rows});
+    const subjectRows:any[] = [];
+    for (const s of students) {
+      const bySubject = new Map<string,{subjectId:string;code:string;name:string;present:number;total:number;leave:number}>();
+      for (const record of s.attendance) {
+        const subject = record.session.subject;
+        const row = bySubject.get(subject.id) ?? {subjectId:subject.id,code:subject.code,name:subject.name,present:0,total:0,leave:0};
+        if (record.status === "ON_LEAVE") row.leave += 1;
+        else if (record.status !== "EXAM_ONLY") { row.total += 1; if (record.status === "PRESENT" || record.status === "LATE_PRESENT") row.present += 1; }
+        bySubject.set(subject.id,row);
+      }
+      for (const row of bySubject.values()) subjectRows.push({...row,studentId:s.id,studentName:s.name,enrollmentNo:s.enrollmentNo,percentage:pct(row.present,row.total)});
+    }
+    return NextResponse.json({rows,subjectRows});
   }
 
   if (page === "Notifications" || page === "Parent Alerts") {
