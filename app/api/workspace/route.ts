@@ -64,8 +64,11 @@ export async function GET(req: Request) {
   }
 
   if (page === "Master Timetable" || page === "Timetable") {
+    const timetableWhere:any = {department:{institutionId},active:true};
+    if(session.role==="FACULTY") timetableWhere.faculty={userId:session.userId};
+    if(session.role==="STUDENT") timetableWhere.division={students:{some:{userId:session.userId}}};
     const [entries,divisions,subjects,faculty] = await Promise.all([
-      prisma.timetableEntry.findMany({where:{department:{institutionId},active:true},orderBy:[{dayOfWeek:"asc"},{lectureNumber:"asc"}],include:{subject:true,faculty:{include:{user:{select:{departmentId:true}}}},division:{include:{semester:{include:{program:true}}}}}}),
+      prisma.timetableEntry.findMany({where:timetableWhere,orderBy:[{dayOfWeek:"asc"},{lectureNumber:"asc"}],include:{subject:true,faculty:{include:{user:{select:{departmentId:true}}}},division:{include:{semester:{include:{program:true}}}}}}),
       prisma.division.findMany({where:{semester:{program:{department:{institutionId}}}},orderBy:[{semester:{program:{code:"asc"}}},{semester:{number:"asc"}},{name:"asc"}],include:{semester:{include:{program:true}}}}),
       prisma.subject.findMany({where:{department:{institutionId}},orderBy:{code:"asc"}}),
       prisma.faculty.findMany({where:{user:{institutionId,active:true}},orderBy:{name:"asc"}})
