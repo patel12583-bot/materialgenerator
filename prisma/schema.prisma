@@ -138,6 +138,7 @@ model Faculty {
   leavesApproved LeaveRequest[] @relation("LeaveApprover")
   attendanceSessions AttendanceSession[]
   substituteAssignments SubstituteAssignment[] @relation("SubstituteFaculty")
+  mainSubstituteAssignments SubstituteAssignment[] @relation("MainFaculty")
 }
 
 model Student {
