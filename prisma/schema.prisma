@@ -213,8 +213,7 @@ model TimetableEntry {
   faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   attendanceSessions AttendanceSession[]
   @@unique([divisionId, dayOfWeek, lectureNumber])
-  @@unique([facultyId, dayOfWeek, lectureNumber])
-  @@index([facultyId, dayOfWeek])
+  @@index([facultyId, dayOfWeek, lectureNumber])
 }
 
 model AttendanceSession {
@@ -272,7 +271,7 @@ model Notification {
   channel String
   recipient String
   template String
-  dedupeKey String @unique @default(cuid())
+  dedupeKey String @default(cuid())
   payload Json
   status String @default("QUEUED")
   student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
