@@ -10,7 +10,7 @@ export async function POST(req:Request){
   const normalized=String(role).toUpperCase();
   const user=await prisma.user.findUnique({where:{username:String(username).trim()}});
   if(!user||!user.active||user.role!==normalized) return NextResponse.json({error:"Invalid credentials or portal."},{status:401});
-  if(!(await bcrypt.compare(String(password),user.passwordHash))) return NextResponse.json({error:"Invalid credentials."},{status:401});
+  if(!user.passwordHash || !(await bcrypt.compare(String(password),user.passwordHash))) return NextResponse.json({error:"Invalid credentials."},{status:401});
   await createSession({userId:user.id,role:user.role,institutionId:user.institutionId,departmentId:user.departmentId});
   return NextResponse.json({redirect:redirects[user.role]||"/login"});
  }catch(error){console.error(error);return NextResponse.json({error:"Authentication service unavailable."},{status:500});}
