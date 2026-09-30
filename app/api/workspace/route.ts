@@ -85,6 +85,8 @@ export async function GET(req: Request) {
   }
 
   if (page === "Defaulters") {
+    const policy = await prisma.institution.findUnique({where:{id:institutionId},select:{minimumAttendance:true}});
+    const threshold = policy?.minimumAttendance ?? 75;
     const students = await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId}}}}},include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null},status:{notIn:["EXAM_ONLY","ON_LEAVE"]}}}}});
     const defaulters = students.map(s => {
       const total=s.attendance.length, present=s.attendance.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length;
@@ -184,6 +186,8 @@ export async function POST(req: Request) {
       if(standardSlots[lectureNumber] && (startTime!==standardSlots[lectureNumber][0] || endTime!==standardSlots[lectureNumber][1])) return NextResponse.json({error:"Lecture time must match the Noble standard timetable slot."},{status:400});
       const mapping = await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
       if(!mapping) return NextResponse.json({error:"Faculty is not assigned to this subject."},{status:400});
+      const facultyConflict = await prisma.timetableEntry.findFirst({where:{facultyId:faculty.id,dayOfWeek,lectureNumber,active:true}});
+      if(facultyConflict) return NextResponse.json({error:"This faculty member is already assigned to another division in this lecture slot."},{status:409});
       const item=await prisma.timetableEntry.create({data:{departmentId:subject.departmentId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek,lectureNumber,startTime,endTime,room:String(body.room||"")||null}});
       await prisma.auditLog.create({data:{actorId:session.userId,action:"CREATE",entity:"TimetableEntry",entityId:item.id,after:item}});
       return NextResponse.json({item},{status:201});
