@@ -1,29 +1,128 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(req:Request){
- const session=await getSession();
- if(!session||session.role!=="FACULTY") return NextResponse.json({error:"Unauthorized"},{status:401});
- const {sessionId,records}=await req.json();
- if(!sessionId||!Array.isArray(records)) return NextResponse.json({error:"Invalid attendance payload."},{status:400});
- const faculty=await prisma.faculty.findUnique({where:{userId:session.userId}});
- const attendance=await prisma.attendanceSession.findFirst({where:{id:sessionId,facultyId:faculty?.id},include:{subject:true}});
- if(!attendance) return NextResponse.json({error:"Attendance session not found."},{status:404});
- for(const item of records){
-   if(!item.studentId||!["PRESENT","ABSENT","EXAM_ONLY","ON_LEAVE","LATE_PRESENT"].includes(item.status)) continue;
-   const existing=await prisma.attendanceRecord.findUnique({where:{sessionId_studentId:{sessionId,studentId:item.studentId}},include:{student:{select:{id:true}}}});
-   if(!existing) continue;
-   const approved=await prisma.leaveRequest.findFirst({where:{studentId:existing.studentId,status:"APPROVED",fromDate:{lte:attendance.date},toDate:{gte:attendance.date}}});
-   const status=approved ? "ON_LEAVE" : item.status;
-   await prisma.attendanceRecord.update({where:{sessionId_studentId:{sessionId,studentId:item.studentId}},data:{status}});
- }
- const absent=await prisma.attendanceRecord.findMany({where:{sessionId,status:"ABSENT"},include:{student:true}});
- const notifications=absent.filter(x=>x.student.parentPhone).flatMap(x=>[
-   {studentId:x.student.id,channel:"SMS",recipient:x.student.parentPhone!,template:"ATTENDANCE_ABSENT",payload:{studentName:x.student.name,subject:attendance.subject.name}},
-   {studentId:x.student.id,channel:"WHATSAPP",recipient:x.student.parentPhone!,template:"ATTENDANCE_ABSENT",payload:{studentName:x.student.name,subject:attendance.subject.name}}
- ]);
- if(notifications.length) await prisma.notification.createMany({data:notifications});
- await prisma.attendanceSession.update({where:{id:sessionId},data:{submittedAt:new Date()}});
- return NextResponse.json({ok:true,absentCount:absent.length,notificationsQueued:notifications.length});
+const statuses = ["PRESENT", "ABSENT", "EXAM_ONLY", "ON_LEAVE", "LATE_PRESENT"] as const;
+
+export async function POST(req: Request) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "FACULTY") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const sessionId = String(body.sessionId || "");
+    const input = Array.isArray(body.records) ? body.records : [];
+    if (!sessionId || !Array.isArray(body.records)) {
+      return NextResponse.json({ error: "Invalid attendance payload." }, { status: 400 });
+    }
+
+    const faculty = await prisma.faculty.findUnique({ where: { userId: user.id } });
+    if (!faculty) return NextResponse.json({ error: "Faculty profile not found." }, { status: 404 });
+
+    const attendance = await prisma.attendanceSession.findFirst({
+      where: { id: sessionId, facultyId: faculty.id, timetable: { department: { institutionId: user.institutionId } } },
+      include: { subject: true, timetable: true, records: { include: { student: true } } },
+    });
+    if (!attendance) return NextResponse.json({ error: "Attendance session not found." }, { status: 404 });
+    if (attendance.submittedAt) {
+      return NextResponse.json({ error: "This attendance session has already been submitted." }, { status: 409 });
+    }
+
+    const allowed = new Map(attendance.records.map(record => [record.studentId, record]));
+    const bounds = {
+      start: new Date(`${attendance.dateKey}T00:00:00+05:30`),
+      end: new Date(`${attendance.dateKey}T23:59:59+05:30`),
+    };
+
+    const changes: { studentId: string; before: string; after: string }[] = [];
+    const finalStatuses = new Map<string, typeof statuses[number]>();
+
+    for (const item of input) {
+      const studentId = String(item?.studentId || "");
+      const requested = String(item?.status || "") as typeof statuses[number];
+      if (!studentId || !statuses.includes(requested)) continue;
+
+      const existing = allowed.get(studentId);
+      if (!existing) continue;
+
+      const approvedLeave = await prisma.leaveRequest.findFirst({
+        where: {
+          studentId,
+          status: "APPROVED",
+          fromDate: { lte: bounds.end },
+          toDate: { gte: bounds.start },
+        },
+        select: { id: true },
+      });
+
+      const finalStatus = approvedLeave ? "ON_LEAVE" : requested;
+      finalStatuses.set(studentId, finalStatus);
+      if (existing.status !== finalStatus) {
+        changes.push({ studentId, before: existing.status, after: finalStatus });
+      }
+    }
+
+    await prisma.$transaction(async tx => {
+      for (const change of changes) {
+        await tx.attendanceRecord.update({
+          where: { sessionId_studentId: { sessionId, studentId: change.studentId } },
+          data: { status: change.after as any, markedAt: new Date() },
+        });
+        await tx.auditLog.create({
+          data: {
+            actorId: user.id,
+            action: "ATTENDANCE_CHANGE",
+            entity: "AttendanceRecord",
+            entityId: allowed.get(change.studentId)!.id,
+            before: { status: change.before },
+            after: { status: change.after, sessionId },
+          },
+        });
+      }
+
+      const absent = await tx.attendanceRecord.findMany({
+        where: { sessionId, status: "ABSENT" },
+        include: { student: true },
+      });
+
+      const notifications = absent
+        .filter(record => Boolean(record.student.parentPhone))
+        .flatMap(record => {
+          const base = `ATTENDANCE_ABSENT:${sessionId}:${record.studentId}`;
+          const payload = {
+            studentName: record.student.name,
+            subject: attendance.subject.name,
+            date: attendance.dateKey,
+            message: `નમસ્તે વાલીશ્રી, આપનો પુત્ર/પુત્રી ${record.student.name} આજે ${attendance.dateKey} ના રોજ ${attendance.subject.name} ના લેક્ચરમાં ગેરહાજર (Absent) છે. - Noble Group of Institutions`,
+          };
+          return [
+            { studentId: record.studentId, channel: "SMS", recipient: record.student.parentPhone!, template: "ATTENDANCE_ABSENT", dedupeKey: `${base}:SMS`, payload },
+            { studentId: record.studentId, channel: "WHATSAPP", recipient: record.student.parentPhone!, template: "ATTENDANCE_ABSENT", dedupeKey: `${base}:WHATSAPP`, payload },
+          ];
+        });
+
+      if (notifications.length) {
+        await tx.notification.createMany({ data: notifications, skipDuplicates: true });
+      }
+
+      await tx.attendanceSession.update({
+        where: { id: sessionId },
+        data: { submittedAt: new Date() },
+      });
+    });
+
+    const absentCount = await prisma.attendanceRecord.count({ where: { sessionId, status: "ABSENT" } });
+    return NextResponse.json({
+      ok: true,
+      absentCount,
+      notificationsQueued: absentCount * 2,
+      changedCount: changes.length,
+      message: "Attendance submitted successfully.",
+    });
+  } catch (error) {
+    console.error("attendance submit error", error);
+    return NextResponse.json({ error: "Unable to submit attendance." }, { status: 500 });
+  }
 }
