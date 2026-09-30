@@ -79,6 +79,7 @@ export async function GET(req: Request) {
   if (page === "Leaves" || page === "Leave Requests" || page === "Leave Status") {
     const where:any = {student:{division:{semester:{program:{department:{institutionId}}}}}};
     if (session.role === "STUDENT") where.student = {userId:session.userId};
+    if (session.role === "FACULTY" && session.departmentId) where.student.division.semester.program.departmentId = session.departmentId;
     const leaves = await prisma.leaveRequest.findMany({where,orderBy:{createdAt:"desc"},take:100,include:{student:{select:{id:true,name:true,enrollmentNo:true,rollNo:true,division:{include:{semester:{include:{program:true}}}}}}}});
     return NextResponse.json({leaves});
   }
