@@ -1,1 +1,5 @@
-import Portal from "@/components/Portal"; export default function SuperAdmin(){return <Portal role="Super Admin" title="System control center" subtitle="Manage institutions, administrators, security policies and global configuration."/>}
+import { redirect } from "next/navigation";
+
+export default function SuperAdmin(){
+  redirect("/login");
+}
