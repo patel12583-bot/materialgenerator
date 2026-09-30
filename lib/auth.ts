@@ -66,7 +66,7 @@ export async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;
 
-  return prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       id: session.userId,
       institutionId: session.institutionId,
@@ -84,6 +84,8 @@ export async function getCurrentUser() {
       active: true,
     },
   });
+
+  return user ? { ...user, userId: user.id } : null;
 }
 
 export async function clearSession() {
