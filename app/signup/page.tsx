@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { ArrowLeft, ArrowRight, GraduationCap, Mail, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 
 export default function SignupPage(){
+  const [accountType,setAccountType]=useState<"STUDENT"|"FACULTY"|"ADMIN">("STUDENT");
   const [enrollment,setEnrollment]=useState("");
   const [name,setName]=useState("");
   const [mobile,setMobile]=useState("");
@@ -54,17 +55,24 @@ export default function SignupPage(){
     <section className="loginPanel">
       <div className="loginBox">
         <a className="backLink" href="/login"><ArrowLeft size={14}/> Back to sign in</a>
-        <span className="loginEyebrow dark">STUDENT ACCOUNT</span>
+        <span className="loginEyebrow dark">{accountType} ACCOUNT</span>
         <h2>Create account.</h2>
-        <p className="loginMuted">Choose the account type. Student activation is self-service; Faculty and Admin accounts are created by an existing Admin.</p>
+        <p className="loginMuted">Choose the account type below. Student activation is self-service; Faculty and Admin accounts are managed by Noble Admin.</p>
 
         <div className="roleGrid accountRoleInfo">
-          <div className="roleChoice active"><GraduationCap size={15}/> Student</div>
-          <div className="roleChoice disabled"><UsersRound size={15}/> Faculty · Admin-managed</div>
-          <div className="roleChoice disabled"><ShieldCheck size={15}/> Admin · Admin-managed</div>
+          <button type="button" className={`roleChoice roleChoiceButton ${accountType==="STUDENT"?"active":""}`} onClick={()=>{setAccountType("STUDENT");setMessage("");}}><GraduationCap size={15}/> Student</button>
+          <button type="button" className={`roleChoice roleChoiceButton ${accountType==="FACULTY"?"active":""}`} onClick={()=>{setAccountType("FACULTY");setMessage("");}}><UsersRound size={15}/> Faculty</button>
+          <button type="button" className={`roleChoice roleChoiceButton ${accountType==="ADMIN"?"active":""}`} onClick={()=>{setAccountType("ADMIN");setMessage("");}}><ShieldCheck size={15}/> Admin</button>
         </div>
 
-        <form onSubmit={submit}>
+        {accountType !== "STUDENT" ? <div className="managedAccountCard">
+          <div className="managedAccountIcon">{accountType==="FACULTY"?<UsersRound size={20}/>:<ShieldCheck size={20}/>}</div>
+          <div>
+            <h3>{accountType==="FACULTY"?"Faculty account":"Admin account"}</h3>
+            <p>{accountType==="FACULTY"?"Faculty accounts are created by an existing Noble Admin with department and employee details.":"Admin accounts are created by an existing Noble Admin for controlled access to the college system."}</p>
+            <a className="managedAccountLink" href="/login">Go to sign in <ArrowRight size={14}/></a>
+          </div>
+        </div> : <form onSubmit={submit}>
           <label>Full name</label>
           <div className="loginInput"><UserRound size={17}/><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Your full name"/></div>
 
@@ -85,9 +93,9 @@ export default function SignupPage(){
 
           {message&&<div className="loginError signupMessage">{message}</div>}
           <button className="loginSubmit" disabled={busy}>{busy?"Creating…":"Create account"}<ArrowRight size={17}/></button>
-        </form>
+        </form>}
 
-        <small className="loginFooter">Faculty and Admin: ask an existing Noble Admin to create your account from Admin → Accounts.</small>
+        <small className="loginFooter">{accountType==="STUDENT" ? "Faculty and Admin accounts are created by an existing Noble Admin from Admin → Accounts." : "Need this account? Ask an existing Noble Admin to create it from Admin → Accounts."}</small>
       </div>
     </section>
   </main>;
