@@ -9,7 +9,7 @@ const features = [
 ];
 
 const portals = [
-  { icon: ShieldCheck, title: "Admin", text: "Departments, students, faculty, accounts and master timetable.", href: "/admin" },
+  { icon: ShieldCheck, title: "Admin", text: "Departments, students, faculty, accounts and master timetable.", href: "/login?role=ADMIN" },
   { icon: Users, title: "Faculty", text: "Today's lectures and fast classroom attendance marking.", href: "/login?role=FACULTY" },
   { icon: GraduationCap, title: "Student", text: "Attendance, timetable, leave requests and notifications.", href: "/login?role=STUDENT" },
 ];
