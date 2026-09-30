@@ -1,14 +1,39 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const adminRoles = ["ADMIN","SUPER_ADMIN"];
 const pct = (present:number, total:number) => total ? Math.round((present / total) * 1000) / 10 : 0;
 
 async function context() {
-  const session = await getSession();
-  if (!session) return null;
-  return session;
+  return getCurrentUser();
+}
+
+function canRead(role: string, page: string) {
+  const rules: Record<string, string[]> = {
+    Overview: ["ADMIN", "FACULTY", "STUDENT"],
+    Subjects: ["ADMIN"],
+    "Master Timetable": ["ADMIN", "FACULTY", "STUDENT"],
+    Timetable: ["ADMIN", "FACULTY", "STUDENT"],
+    Leaves: ["ADMIN", "FACULTY", "STUDENT"],
+    "Leave Requests": ["ADMIN", "FACULTY"],
+    "Leave Status": ["ADMIN", "FACULTY"],
+    Defaulters: ["ADMIN"],
+    Reports: ["ADMIN", "FACULTY", "STUDENT"],
+    "My Attendance": ["STUDENT"],
+    Notifications: ["ADMIN", "STUDENT"],
+    "Parent Alerts": ["ADMIN"],
+    "Audit Logs": ["ADMIN"],
+    Settings: ["ADMIN"],
+    Adjustments: ["FACULTY"],
+    Faculty: ["ADMIN"],
+    Students: ["ADMIN"],
+    "Attendance Monitor": ["ADMIN"],
+    Administrators: ["ADMIN"],
+    Institutions: ["ADMIN"],
+    Security: ["ADMIN"],
+  };
+  return rules[page]?.includes(role) ?? false;
 }
 
 export async function GET(req: Request) {
@@ -16,6 +41,7 @@ export async function GET(req: Request) {
   if (!session) return NextResponse.json({error:"Unauthorized"},{status:401});
   const page = new URL(req.url).searchParams.get("page") || "Overview";
   const institutionId = session.institutionId;
+  if (!canRead(session.role, page)) return NextResponse.json({error:"Forbidden"},{status:403});
 
   if (page === "Overview") {
     const [students,faculty,subjects,timetable,leaves,notifications] = await Promise.all([
