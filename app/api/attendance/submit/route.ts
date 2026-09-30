@@ -65,6 +65,9 @@ export async function POST(req: Request) {
     }
 
     await prisma.$transaction(async tx => {
+      const claim = await tx.attendanceSession.updateMany({where:{id:sessionId,facultyId:faculty.id,submittedAt:null},data:{submittedAt:new Date()}});
+      if (!claim.count) throw new Error("Attendance session already submitted.");
+
       for (const change of changes) {
         await tx.attendanceRecord.update({
           where: { sessionId_studentId: { sessionId, studentId: change.studentId } },
@@ -107,10 +110,6 @@ export async function POST(req: Request) {
         await tx.notification.createMany({ data: notifications, skipDuplicates: true });
       }
 
-      await tx.attendanceSession.update({
-        where: { id: sessionId },
-        data: { submittedAt: new Date() },
-      });
     });
 
     const absentCount = await prisma.attendanceRecord.count({ where: { sessionId, status: "ABSENT" } });
