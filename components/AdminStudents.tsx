@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, RefreshCw, Search, Users, UserPlus } from "lucide-react";
 
 type Division={id:string;name:string;semester:{number:number;program:{name:string;code:string}}};
-type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{active:boolean;email:string|null;phone:string|null}};
+type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
 
 export default function AdminStudents(){
  const [students,setStudents]=useState<Student[]>([]);
@@ -59,7 +59,7 @@ export default function AdminStudents(){
     <span>{s.enrollmentNo}</span>
     <span>{s.division.semester.program.code} · Sem {s.division.semester.number} · Div {s.division.name}</span>
     <span><small>{s.phone||"No mobile"}</small><small>{s.parentPhone||"No parent mobile"}</small></span>
-    <span className={s.user.active?"accountReady":"accountPending"}>{s.user.active?"Active":"Inactive"}</span>
+    <span className={s.user.active?"accountReady":"accountPending"}>{s.user.passwordConfigured?"Active":"Pending activation"}</span>
    </div>)}
   </div>
   {open&&<div className="modalBackdrop" onMouseDown={()=>setOpen(false)}><div className="modalCard" onMouseDown={e=>e.stopPropagation()}>
