@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 function allowed(role:string){ return role==="ADMIN" || role==="SUPER_ADMIN"; }
 
 export async function GET(){
-  const session=await getSession();
+  const session=await getCurrentUser();
   if(!session || !allowed(session.role)) return NextResponse.json({error:"Unauthorized"},{status:401});
 
   const [faculty,admins,departments]=await Promise.all([
@@ -31,7 +31,7 @@ export async function GET(){
 }
 
 export async function POST(req:Request){
-  const session=await getSession();
+  const session=await getCurrentUser();
   if(!session || !allowed(session.role)) return NextResponse.json({error:"Unauthorized"},{status:401});
 
   try{
