@@ -51,7 +51,15 @@ export async function POST(req: Request) {
     const now = indiaNow();
 
     const timetable = await prisma.timetableEntry.findFirst({
-      where: { id: timetableId, facultyId: faculty.id, active: true, department: { institutionId: user.institutionId } },
+      where: {
+        id: timetableId,
+        active: true,
+        department: { institutionId: user.institutionId },
+        OR: [
+          { facultyId: faculty.id, substituteAssignments: { none: { dateKey: now.dateKey, active: true } } },
+          { substituteAssignments: { some: { dateKey: now.dateKey, active: true, substituteFacultyId: faculty.id } } },
+        ],
+      },
       include: { division: true, subject: true },
     });
     if (!timetable) {
@@ -65,9 +73,9 @@ export async function POST(req: Request) {
     const current = minutes(now.time);
     const start = minutes(timetable.startTime);
     const end = minutes(timetable.endTime);
-    if (current < start - grace || current > end + grace) {
+    if (current < start - grace || current > end) {
       return NextResponse.json({
-        error: `Attendance opens at ${timetable.startTime} and remains available until ${timetable.endTime} plus the ${grace}-minute grace period.`,
+        error: `Attendance opens at ${timetable.startTime} minus the ${grace}-minute grace period and locks at ${timetable.endTime}.`,
       }, { status: 409 });
     }
 
