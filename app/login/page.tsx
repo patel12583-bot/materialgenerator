@@ -79,7 +79,7 @@ export default function LoginPage() {
             <button className="loginSubmit" disabled={busy}>{busy ? "Signing in…" : "Continue"} <ArrowRight size={17} /></button>
           </form>
 
-          {role === "STUDENT" && <div className="signupPrompt">New student? <a href="/signup">Create account</a></div>}
+          <div className="signupPrompt">New student? <a href="/signup">Create account</a></div>
           <small className="loginFooter">Noble Group of Institutions · Mota Habipura, Dabhoi, Gujarat</small>
         </div>
       </section>
