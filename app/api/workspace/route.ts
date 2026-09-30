@@ -158,6 +158,8 @@ export async function POST(req: Request) {
       const department=await prisma.department.findFirst({where:{id:String(body.departmentId),institutionId:session.institutionId}});
       const semester=await prisma.semester.findFirst({where:{id:String(body.semesterId),program:{department:{institutionId:session.institutionId}}}});
       if(!department||!semester) return NextResponse.json({error:"Invalid department or semester."},{status:400});
+      const code = String(body.code || "").trim().toUpperCase(); const name = String(body.name || "").trim(); const credits = Number(body.credits);
+      if(!code || !name || !Number.isInteger(credits) || credits < 0 || credits > 10) return NextResponse.json({error:"Valid subject code, name and credits are required."},{status:400});
       const item=await prisma.subject.create({data:{departmentId:department.id,semesterId:semester.id,code:String(body.code).trim().toUpperCase(),name:String(body.name).trim(),credits:Number(body.credits)||0}});
       await prisma.auditLog.create({data:{actorId:session.userId,action:"CREATE",entity:"Subject",entityId:item.id,after:item}});
       return NextResponse.json({item},{status:201});
