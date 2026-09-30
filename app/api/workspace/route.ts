@@ -186,8 +186,12 @@ export async function POST(req: Request) {
       const student=await prisma.student.findUnique({where:{userId:session.userId}});
       if(!student) return NextResponse.json({error:"Student profile not found."},{status:404});
       const from=new Date(String(body.fromDate)+"T00:00:00+05:30"), to=new Date(String(body.toDate)+"T23:59:59+05:30");
+      const reason=String(body.reason||"").trim();
       if(isNaN(from.getTime())||isNaN(to.getTime())||from>to) return NextResponse.json({error:"Invalid leave dates."},{status:400});
-      const item=await prisma.leaveRequest.create({data:{studentId:student.id,fromDate:from,toDate:to,reason:String(body.reason||"").trim(),documentUrl:String(body.documentUrl||"").trim()||null}});
+      if(!reason || reason.length > 500) return NextResponse.json({error:"Leave reason is required and must be under 500 characters."},{status:400});
+      const overlap=await prisma.leaveRequest.findFirst({where:{studentId:student.id,status:{in:["PENDING","APPROVED"]},fromDate:{lte:to},toDate:{gte:from}}});
+      if(overlap) return NextResponse.json({error:"A leave request already overlaps these dates."},{status:409});
+      const item=await prisma.leaveRequest.create({data:{studentId:student.id,fromDate:from,toDate:to,reason,documentUrl:String(body.documentUrl||"").trim()||null}});
       return NextResponse.json({item},{status:201});
     }
 
