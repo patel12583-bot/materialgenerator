@@ -216,7 +216,7 @@ export async function POST(req: Request) {
         const updated = await tx.leaveRequest.update({where:{id},data:{status:status as any,approverId:approver?.id ?? null,approvedAt:status==="APPROVED"?new Date():null}});
         if(status==="APPROVED") {
           await tx.attendanceRecord.updateMany({where:{studentId:leave.studentId,session:{date:{gte:leave.fromDate,lte:leave.toDate}}},data:{status:"ON_LEAVE"}});
-          await tx.notification.updateMany({where:{studentId:leave.studentId,status:"QUEUED",template:"ATTENDANCE_ABSENT"},data:{status:"CANCELLED"}});
+          const sessions = await tx.attendanceSession.findMany({where:{date:{gte:leave.fromDate,lte:leave.toDate}},select:{id:true}}); for (const sessionRow of sessions) { await tx.notification.updateMany({where:{studentId:leave.studentId,status:"QUEUED",template:"ATTENDANCE_ABSENT",dedupeKey:{startsWith:`ATTENDANCE_ABSENT:${sessionRow.id}:`}},data:{status:"CANCELLED"}}); }
         }
         await tx.auditLog.create({data:{actorId:session.userId,action:status==="APPROVED"?"APPROVE":"REJECT",entity:"LeaveRequest",entityId:id,before:{status:before},after:{status:updated.status}}});
         return updated;
