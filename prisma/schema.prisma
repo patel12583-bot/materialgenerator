@@ -275,7 +275,7 @@ model Notification {
   channel String
   recipient String
   template String
-  dedupeKey String @unique
+  dedupeKey String @unique @default(cuid())
   payload Json
   status String @default("QUEUED")
   student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
