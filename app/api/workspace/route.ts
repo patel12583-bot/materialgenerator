@@ -180,6 +180,8 @@ export async function POST(req: Request) {
       if(!Number.isInteger(dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 6 || !Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > 10) return NextResponse.json({error:"Invalid day or lecture number."},{status:400});
       const startTime=String(body.startTime||""); const endTime=String(body.endTime||"");
       if(!/^\d{2}:\d{2}$/.test(startTime)||!/^\d{2}:\d{2}$/.test(endTime)||startTime>=endTime) return NextResponse.json({error:"Invalid lecture time."},{status:400});
+      const standardSlots:any = {1:["09:00","10:00"],2:["10:00","11:00"],3:["11:15","12:15"],4:["12:15","13:15"],5:["14:00","15:00"],6:["15:00","16:00"]};
+      if(standardSlots[lectureNumber] && (startTime!==standardSlots[lectureNumber][0] || endTime!==standardSlots[lectureNumber][1])) return NextResponse.json({error:"Lecture time must match the Noble standard timetable slot."},{status:400});
       const mapping = await prisma.facultySubject.findUnique({where:{facultyId_subjectId:{facultyId:faculty.id,subjectId:subject.id}}});
       if(!mapping) return NextResponse.json({error:"Faculty is not assigned to this subject."},{status:400});
       const item=await prisma.timetableEntry.create({data:{departmentId:subject.departmentId,divisionId:division.id,subjectId:subject.id,facultyId:faculty.id,dayOfWeek:Number(body.dayOfWeek),lectureNumber:Number(body.lectureNumber),startTime:String(body.startTime),endTime:String(body.endTime),room:String(body.room||"")||null}});
