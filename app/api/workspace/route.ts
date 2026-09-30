@@ -194,9 +194,22 @@ export async function POST(req: Request) {
       if(!["APPROVED","REJECTED"].includes(status)) return NextResponse.json({error:"Invalid status."},{status:400});
       const leave=await prisma.leaveRequest.findFirst({where:{id,student:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}}}});
       if(!leave) return NextResponse.json({error:"Leave request not found."},{status:404});
+      if(session.role==="FACULTY" && session.departmentId) {
+        const studentDepartment = await prisma.student.findUnique({where:{id:leave.studentId},select:{division:{select:{semester:{select:{program:{select:{departmentId:true}}}}}}}});
+        const departmentId = studentDepartment?.division.semester.program.departmentId;
+        if(departmentId !== session.departmentId) return NextResponse.json({error:"You can only approve leave for your department."},{status:403});
+      }
       const approver = session.role==="FACULTY" ? await prisma.faculty.findUnique({where:{userId:session.userId}}) : null;
-      const item=await prisma.leaveRequest.update({where:{id},data:{status:status as any,approverId:approver?.id ?? null,approvedAt:status==="APPROVED"?new Date():null}});
-      await prisma.auditLog.create({data:{actorId:session.userId,action:status==="APPROVED"?"APPROVE":"REJECT",entity:"LeaveRequest",entityId:id,after:item}});
+      const before = leave.status;
+      const item=await prisma.$transaction(async tx => {
+        const updated = await tx.leaveRequest.update({where:{id},data:{status:status as any,approverId:approver?.id ?? null,approvedAt:status==="APPROVED"?new Date():null}});
+        if(status==="APPROVED") {
+          await tx.attendanceRecord.updateMany({where:{studentId:leave.studentId,session:{date:{gte:leave.fromDate,lte:leave.toDate}}},data:{status:"ON_LEAVE"}});
+          await tx.notification.updateMany({where:{studentId:leave.studentId,status:"QUEUED",template:"ATTENDANCE_ABSENT"},data:{status:"CANCELLED"}});
+        }
+        await tx.auditLog.create({data:{actorId:session.userId,action:status==="APPROVED"?"APPROVE":"REJECT",entity:"LeaveRequest",entityId:id,before:{status:before},after:{status:updated.status}}});
+        return updated;
+      });
       return NextResponse.json({item});
     }
 
