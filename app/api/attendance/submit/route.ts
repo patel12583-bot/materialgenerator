@@ -12,7 +12,11 @@ export async function POST(req:Request){
  if(!attendance) return NextResponse.json({error:"Attendance session not found."},{status:404});
  for(const item of records){
    if(!item.studentId||!["PRESENT","ABSENT","EXAM_ONLY","ON_LEAVE","LATE_PRESENT"].includes(item.status)) continue;
-   await prisma.attendanceRecord.update({where:{sessionId_studentId:{sessionId,studentId:item.studentId}},data:{status:item.status}});
+   const existing=await prisma.attendanceRecord.findUnique({where:{sessionId_studentId:{sessionId,studentId:item.studentId}},include:{student:{select:{id:true}}}});
+   if(!existing) continue;
+   const approved=await prisma.leaveRequest.findFirst({where:{studentId:existing.studentId,status:"APPROVED",fromDate:{lte:attendance.date},toDate:{gte:attendance.date}}});
+   const status=approved ? "ON_LEAVE" : item.status;
+   await prisma.attendanceRecord.update({where:{sessionId_studentId:{sessionId,studentId:item.studentId}},data:{status}});
  }
  const absent=await prisma.attendanceRecord.findMany({where:{sessionId,status:"ABSENT"},include:{student:true}});
  const notifications=absent.filter(x=>x.student.parentPhone).flatMap(x=>[
