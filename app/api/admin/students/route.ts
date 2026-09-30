@@ -26,10 +26,10 @@ export async function GET(req:Request){
       ]}:{})
     },
     orderBy:[{division:{semester:{program:{code:"asc"}}}},{division:{semester:{number:"asc"}}},{rollNo:"asc"}],
-    include:{division:{include:{semester:{include:{program:true}}}},user:{select:{active:true,email:true,phone:true}}}
+    include:{division:{include:{semester:{include:{program:true}}}},user:{select:{active:true,email:true,phone:true,passwordHash:true}}}
   });
 
-  return NextResponse.json({divisions,students});
+  return NextResponse.json({divisions,students:students.map(s=>({...s,user:{...s.user,passwordConfigured:Boolean(s.user.passwordHash),passwordHash:undefined}}))});
 }
 
 export async function POST(req:Request){
