@@ -107,7 +107,15 @@ export async function POST(req: Request) {
         });
 
       if (notifications.length) {
-        await tx.notification.createMany({ data: notifications, skipDuplicates: true });
+        const existingNotifications = await tx.notification.findMany({
+          where: { dedupeKey: { in: notifications.map(item => item.dedupeKey) } },
+          select: { dedupeKey: true },
+        });
+        const existingKeys = new Set(existingNotifications.map(item => item.dedupeKey));
+        const freshNotifications = notifications.filter(item => !existingKeys.has(item.dedupeKey));
+        if (freshNotifications.length) {
+          await tx.notification.createMany({ data: freshNotifications });
+        }
       }
 
     });
