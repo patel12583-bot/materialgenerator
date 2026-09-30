@@ -54,7 +54,7 @@ export default function SignupPage(){
 
     <section className="loginPanel">
       <div className="loginBox">
-        <a className="backLink" href="/login"><ArrowLeft size={14}/> Back to sign in</a>
+        <a className="backLink" href="/"><ArrowLeft size={14}/> Back to sign in</a>
         <span className="loginEyebrow dark">{accountType} ACCOUNT</span>
         <h2>Create account.</h2>
         <p className="loginMuted">Choose the account type below. Student activation is self-service; Faculty and Admin accounts are managed by Noble Admin.</p>
@@ -70,7 +70,7 @@ export default function SignupPage(){
           <div>
             <h3>{accountType==="FACULTY"?"Faculty account":"Admin account"}</h3>
             <p>{accountType==="FACULTY"?"Faculty accounts are created by an existing Noble Admin with department and employee details.":"Admin accounts are created by an existing Noble Admin for controlled access to the college system."}</p>
-            <a className="managedAccountLink" href="/login">Go to sign in <ArrowRight size={14}/></a>
+            <a className="managedAccountLink" href="/">Go to sign in <ArrowRight size={14}/></a>
           </div>
         </div> : <form onSubmit={submit}>
           <label>Full name</label>
