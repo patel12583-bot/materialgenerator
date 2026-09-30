@@ -115,7 +115,8 @@ export async function GET(req: Request) {
       }
       for (const row of bySubject.values()) subjectRows.push({...row,studentId:s.id,studentName:s.name,enrollmentNo:s.enrollmentNo,percentage:pct(row.present,row.total)});
     }
-    return NextResponse.json({rows,subjectRows});
+    const policy = await prisma.institution.findUnique({where:{id:institutionId},select:{minimumAttendance:true}});
+    return NextResponse.json({rows,subjectRows,threshold:policy?.minimumAttendance ?? 75});
   }
 
   if (page === "Notifications" || page === "Parent Alerts") {
