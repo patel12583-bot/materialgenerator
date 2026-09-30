@@ -133,3 +133,5 @@
 .homeFooter b{font-size:10px}.homeFooter span,.homeFooter small{font-size:8px;color:#9299a4;margin-top:3px}
 @media(max-width:900px){.homeFeatureGrid{grid-template-columns:1fr 1fr}.homePortalGrid{grid-template-columns:1fr}.homeNote{display:none}}
 @media(max-width:600px){.homeHero{padding:20px 22px 55px;min-height:62vh}.homeHeader{align-items:flex-start}.homeYear{display:none}.homeHeroContent{margin-top:80px}.homeHero h1{font-size:49px}.homeBody{padding:38px 22px 25px}.homeIntro,.homeSectionHead{align-items:flex-start;flex-direction:column}.homeFeatureGrid{grid-template-columns:1fr}.homeFooter{align-items:flex-start;gap:15px;flex-direction:column}}
+
+.homeClickable{text-decoration:none;color:inherit;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.homeClickable:hover{transform:translateY(-3px);border-color:#d4d9e1;box-shadow:0 16px 35px #1118270d}.homeCardAction{display:flex;align-items:center;gap:6px;margin-top:17px;padding-top:12px;border-top:1px solid #eef0f3;color:#667085;font-size:9px;font-weight:800}.homePortalLine{transition:color .18s ease}.homeClickable:hover .homePortalLine{color:#111827}
