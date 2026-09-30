@@ -122,6 +122,7 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("attendance submit error", error);
+    if(error instanceof Error && error.message.includes("already submitted")) return NextResponse.json({error:"This attendance session was already submitted."},{status:409});
     return NextResponse.json({ error: "Unable to submit attendance." }, { status: 500 });
   }
 }
