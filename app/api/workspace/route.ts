@@ -129,7 +129,18 @@ export async function GET(req: Request) {
       for (const row of bySubject.values()) subjectRows.push({...row,studentId:s.id,studentName:s.name,enrollmentNo:s.enrollmentNo,percentage:pct(row.present,row.total)});
     }
     const policy = await prisma.institution.findUnique({where:{id:institutionId},select:{minimumAttendance:true}});
-    return NextResponse.json({rows,subjectRows,threshold:policy?.minimumAttendance ?? 75});
+    const threshold=policy?.minimumAttendance ?? 75;
+    for(const row of rows) row.eligible=row.percentage>=threshold;
+    for(const row of subjectRows) row.eligible=row.percentage>=threshold;
+    const dailyHistory:any[]=[];
+    if(session.role==="STUDENT" && students[0]){
+      for(const record of students[0].attendance){
+        if(record.session.examType) continue;
+        dailyHistory.push({date:record.session.dateKey,subject:record.session.subject.name,code:record.session.subject.code,status:record.status});
+      }
+      dailyHistory.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    }
+    return NextResponse.json({rows,subjectRows,threshold,dailyHistory,examEligibility:rows[0]?.eligible ?? false});
   }
 
   if (page === "Notifications" || page === "Parent Alerts") {
