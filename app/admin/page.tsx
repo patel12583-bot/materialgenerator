@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import Portal from "@/components/Portal";
 
 export default async function Admin() {
