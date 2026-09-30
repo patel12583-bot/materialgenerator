@@ -154,6 +154,7 @@ model Student {
   parentLinks ParentStudent[]
   attendance AttendanceRecord[]
   leaveRequests LeaveRequest[]
+  notifications Notification[]
   @@index([divisionId, rollNo])
 }
 
@@ -277,6 +278,7 @@ model Notification {
   dedupeKey String @unique
   payload Json
   status String @default("QUEUED")
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
   providerMessageId String?
   sentAt DateTime?
   createdAt DateTime @default(now())
