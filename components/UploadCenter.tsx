@@ -26,6 +26,9 @@ const options:Record<string,{key:string;title:string;text:string;accept:string}[
     {key:"attendance",title:"Department attendance",text:"Upload department attendance reconciliation sheets.",accept:".csv,.xlsx,.xls,.pdf"},
     {key:"academic",title:"Academic documents",text:"Upload department schedules and academic documents.",accept:".pdf,.doc,.docx,.xlsx,.xls"},
   ],
+  Parent:[
+    {key:"supporting",title:"Supporting document",text:"Upload a supporting document for an attendance or leave query.",accept:".pdf,.jpg,.jpeg,.png"},
+  ],
   "Super Admin":[
     {key:"institution",title:"Institution documents",text:"Upload institution-level records and compliance documents.",accept:".pdf,.doc,.docx,.xlsx,.xls,.csv"},
   ],
