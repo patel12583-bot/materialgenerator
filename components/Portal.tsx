@@ -148,6 +148,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
           :page==="Today's Lectures"&&role==="Faculty"?<FacultyToday lectures={lectures} currentTime={currentTime} onStart={startAttendance} busy={busy}/>
           :page==="Hall Tickets"&&role==="Student"?<HallTickets/>
+          :page==="Examinations"&&role==="Student"?<Examinations/>
           :page==="Uploads"?<UploadCenter role={role}/>
           :page==="Attendance"&&role==="Faculty"&&sessionId?<LiveAttendance records={records} setStatus={(id,s)=>setRecords(x=>x.map(r=>r.studentId===id?{...r,status:s}:r))} onSubmit={submit} busy={busy} message={message}/>
           :modulePage?<WorkspaceModule role={role} page={page}/>
@@ -176,6 +177,14 @@ function HallTickets(){
   const openTicket=(id:string)=>window.open("/api/exam/hall-ticket?sessionId="+encodeURIComponent(id),"_blank","noopener,noreferrer");
   return <div className="adminWorkspace"><div className="pageHead"><div><span className="eyebrow">STUDENT · EXAMINATION</span><h1>Hall <em>tickets.</em></h1><p>Published examination schedules appear here with a print-ready hall ticket.</p></div></div>
     {loading?<div className="card emptyState"><Activity size={18}/><span>Loading examination schedule…</span></div>:error?<div className="card errorState"><X size={18}/><div><b>Could not load hall tickets</b><p>{error}</p></div></div>:(data.exams||[]).length===0?<div className="card emptyState"><GraduationCap size={22}/><h2>No published examinations</h2><p>Your examination authority has not published a schedule for your division yet.</p></div>:<div className="lectureStack">{data.exams.map((x:any)=><div className="lectureCard" key={x.id}><div className="lectureTime"><CalendarDays size={18}/><b>{String(x.examType).replace("_"," ")}</b></div><div className="lectureInfo"><span>{data.student?.program} · Semester {data.student?.semester} · Division {data.student?.division}</span><h2>{x.subject.code} · {x.subject.name}</h2><small>{x.dateKey} · {x.room}</small></div><button className="primary" onClick={()=>openTicket(x.id)}>Generate Hall Ticket <Download size={14}/></button></div>)}</div>}
+  </div>;
+}
+
+function Examinations(){
+  const [state,setState]=useState<any>({exams:[]}); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
+  useEffect(()=>{fetch("/api/workspace?page=Examinations",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error||"Unable to load examinations.");setState(d)}).catch(e=>setError(e instanceof Error?e.message:"Unable to load examinations.")).finally(()=>setLoading(false))},[]);
+  return <div className="adminWorkspace"><div className="pageHead"><div><span className="eyebrow">STUDENT · EXAMINATIONS</span><h1>Exam <em>centre.</em></h1><p>Your published examination schedule, subject details and hall-ticket access in one place.</p></div></div>
+    {loading?<div className="card emptyState"><Activity size={18}/><span>Loading examination schedule…</span></div>:error?<div className="card errorState"><X size={18}/><div><b>Unable to load examinations</b><p>{error}</p></div></div>:state.exams.length===0?<div className="card emptyState"><GraduationCap size={22}/><h2>No examinations published</h2><p>Published exams for your division will appear here automatically.</p></div>:<div className="lectureStack">{state.exams.map((x:any)=><div className="lectureCard" key={x.id}><div className="lectureTime"><CalendarDays size={18}/><b>{String(x.examType).replaceAll("_"," ")}</b></div><div className="lectureInfo"><span>{x.division.semester.program.name} · Semester {x.division.semester.number} · Division {x.division.name}</span><h2>{x.subject.code} · {x.subject.name}</h2><small>{x.dateKey} · {x.room}</small></div><span className="status present">SCHEDULED</span></div>)}</div>}
   </div>;
 }
 
