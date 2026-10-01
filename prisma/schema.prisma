@@ -137,6 +137,7 @@ model Faculty {
   timetable TimetableEntry[]
   leavesApproved LeaveRequest[] @relation("LeaveApprover")
   attendanceSessions AttendanceSession[]
+  examSessions ExamSession[]
   substituteAssignments SubstituteAssignment[] @relation("SubstituteFaculty")
   mainSubstituteAssignments SubstituteAssignment[] @relation("MainFaculty")
 }
