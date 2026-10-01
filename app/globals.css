@@ -145,3 +145,55 @@
 .uploadIcon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#f2f6ff;color:#2563eb}
 .uploadCard b{font-size:16px}.uploadCard p{margin:0;color:#667085;line-height:1.5;font-size:13px}.uploadCard small{color:#98a2b3;font-size:10px;letter-spacing:.03em}.uploadCard span{margin-top:5px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;color:#175cd3}
 @media(max-width:760px){.uploadGrid{grid-template-columns:1fr}}
+
+/* =========================================================
+   COMPANY GRADE DESIGN SYSTEM — v2
+   ========================================================= */
+:root{--ink:#0b1220;--muted:#667085;--line:#e7ebf0;--soft:#f6f8fb;--blue:#175cd3;--blue2:#0b4bb3;--green:#12b76a;--danger:#d92d20;--radius:18px}
+*{box-sizing:border-box}
+button,input,select{font:inherit}
+button{font-family:inherit}
+body{background:#f6f8fb;color:var(--ink);letter-spacing:-.01em}
+.companyShell{background:#f6f8fb}
+.companySide{width:258px;background:#fff;border-right:1px solid #e7ebf0;padding:20px 14px 14px;box-shadow:8px 0 28px rgba(15,23,42,.025);transition:width .2s ease}
+.companyBrand{height:48px;display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:17px}
+.brandMark{width:38px;height:38px;border-radius:11px;overflow:hidden;background:#0b1220;display:grid;place-items:center;flex:0 0 38px}
+.brandMark img{width:100%;height:100%;object-fit:contain;background:#fff}
+.brandCopy b,.brandCopy span{display:block}.brandCopy b{font-size:14px;letter-spacing:-.03em}.brandCopy span{font-size:8px;color:#98a2b3;margin-top:2px}
+.sideClose{display:none;margin-left:auto}
+.workspaceIdentity{display:flex;gap:10px;align-items:center;padding:11px;background:#f7f9fc;border:1px solid #edf0f4;border-radius:14px;margin:0 0 18px}
+.workspaceAvatar{width:34px;height:34px;border-radius:10px;background:#0b1220;color:#fff;display:grid;place-items:center;font-size:9px;font-weight:900;flex:0 0 34px}
+.workspaceIdentity b,.workspaceIdentity small{display:block}.workspaceIdentity b{font-size:11px}.workspaceIdentity small{font-size:8px;color:#98a2b3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.companyNav{overflow:auto;height:calc(100vh - 278px);padding-right:3px}
+.navGroup{margin-bottom:17px}.navGroupLabel{display:block;padding:0 11px 7px;color:#98a2b3;font-size:7px;letter-spacing:.14em;font-weight:900;text-transform:uppercase}
+.companySide .navItem{position:relative;width:100%;height:38px;border:0;background:transparent;border-radius:10px;display:flex;align-items:center;gap:10px;padding:0 11px;color:#667085;font-size:10px;font-weight:650;text-align:left;cursor:pointer;margin-bottom:2px;transition:.15s}
+.companySide .navItem:hover{background:#f7f9fc;color:#101828}.companySide .navItem.active{background:#eef4ff;color:#175cd3;font-weight:800}.companySide .navItem i{position:absolute;right:8px;width:4px;height:4px;background:#175cd3;border-radius:50%}
+.companySideBottom{position:absolute;bottom:14px;left:14px;right:14px;background:#fff}
+.secureMini{display:flex;gap:8px;align-items:center;padding:9px 10px;background:#f7fbf9;border:1px solid #e5f5ed;border-radius:10px;margin-bottom:9px;color:#12b76a}.secureMini b,.secureMini small{display:block}.secureMini b{font-size:8px;color:#344054}.secureMini small{font-size:7px;color:#98a2b3;margin-top:2px}
+.portalUser{display:flex;align-items:center;gap:9px;padding:7px 4px}.portalUser b,.portalUser small{display:block}.portalUser b{font-size:9px}.portalUser small{font-size:7px;color:#98a2b3;margin-top:2px}
+.companySide .logoutBtn{width:100%;height:34px;border:1px solid #e7ebf0;background:#fff;border-radius:9px;color:#667085;display:flex;align-items:center;justify-content:center;gap:7px;font-size:9px;font-weight:750;cursor:pointer}.companySide .logoutBtn:hover{background:#f8fafc;color:#101828}
+.companyShell.sidebarCollapsed .companySide{width:78px}.sidebarCollapsed .brandCopy,.sidebarCollapsed .workspaceIdentity>div:not(.workspaceAvatar),.sidebarCollapsed .navGroupLabel,.sidebarCollapsed .navItem span,.sidebarCollapsed .navItem i,.sidebarCollapsed .secureMini div,.sidebarCollapsed .portalUser>div:not(.avatar),.sidebarCollapsed .logoutBtn{display:none}.sidebarCollapsed .companyBrand{justify-content:center}.sidebarCollapsed .workspaceIdentity{justify-content:center}.sidebarCollapsed .navItem{justify-content:center}.sidebarCollapsed .secureMini{justify-content:center}.sidebarCollapsed .portalUser{justify-content:center}
+.companyMain{min-width:0}
+.companyTop{height:68px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-bottom:1px solid #e7ebf0;padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.topLeft,.topRight,.crumb{display:flex;align-items:center}.topLeft{gap:13px}.crumb{gap:9px;font-size:10px}.crumb span{color:#98a2b3}.crumb b{color:#d0d5dd}.crumb strong{font-weight:800;color:#344054}
+.topRight{gap:12px}.topStatus{display:flex;align-items:center;gap:6px;font-size:8px;color:#667085;padding:6px 9px;border:1px solid #e7ebf0;border-radius:999px;background:#fff}.topStatus span{width:6px;height:6px;border-radius:50%;background:#12b76a}
+.topIcon{width:32px;height:32px;border:1px solid #e7ebf0;background:#fff;border-radius:9px;color:#667085;display:grid;place-items:center}.topAvatar{width:32px;height:32px;border-radius:9px;background:#0b1220;color:#fff;display:grid;place-items:center;font-size:8px;font-weight:900}
+.companyContent{max-width:1440px;width:100%;margin:0 auto;padding:30px 34px 60px}
+.globalNotice{display:flex;align-items:center;gap:8px;background:#fff8eb;border:1px solid #fedf89;color:#7a4b00;border-radius:12px;padding:10px 12px;margin-bottom:18px;font-size:10px}.globalNotice span{flex:1}.globalNotice button{border:0;background:transparent;cursor:pointer;color:inherit}
+.companyContent .pageHead{margin-bottom:24px}.companyContent .pageHead h1{font-size:34px;line-height:1.08;letter-spacing:-.055em}.companyContent .pageHead h1 em{color:#175cd3;font-style:normal}.companyContent .pageHead p{font-size:11px;line-height:1.65;color:#667085;max-width:720px}
+.card{border-color:#e7ebf0!important;box-shadow:0 5px 20px rgba(16,24,40,.025)!important;border-radius:16px!important}
+.portalStats{gap:12px!important}.metric{border:1px solid #e7ebf0!important;background:#fff!important;border-radius:16px!important;box-shadow:0 5px 20px rgba(16,24,40,.025)!important;padding:18px!important}.metric b{font-size:25px!important}
+.primary{border:0!important;border-radius:10px!important;background:#0b1220!important;color:#fff!important;min-height:38px;padding:0 14px!important;font-size:10px!important;font-weight:800!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;cursor:pointer!important;box-shadow:0 5px 12px rgba(11,18,32,.10)}.primary:hover{background:#175cd3!important;transform:translateY(-1px)}.primary:disabled{opacity:.55;transform:none;cursor:wait!important}
+.secondaryBtn{border:1px solid #dfe4ea!important;background:#fff!important;color:#344054!important;border-radius:10px!important;min-height:36px;padding:0 12px!important;font-size:9px!important;font-weight:750!important;display:inline-flex!important;align-items:center!important;gap:6px!important;cursor:pointer}.secondaryBtn:hover{background:#f8fafc!important}
+.adminForm input,.adminForm select,.studentToolbar input,.uploadCard input{border:1px solid #dfe4ea!important;border-radius:10px!important;background:#fff!important;min-height:40px!important;padding:0 11px!important;color:#101828!important;outline:none}.adminForm input:focus,.adminForm select:focus,.studentToolbar input:focus{border-color:#84adf7!important;box-shadow:0 0 0 3px #175cd314}
+.pageHead{align-items:flex-start!important}.eyebrow{font-size:7px!important;letter-spacing:.16em!important;font-weight:900!important;color:#98a2b3!important}.cardHead h2{font-size:17px!important;letter-spacing:-.025em}
+.emptyState{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;color:#98a2b3;padding:30px}.emptyState h2{font-size:15px;color:#344054;margin:3px 0}.emptyState p{font-size:10px;line-height:1.6;max-width:430px;margin:0}.errorState{display:flex;align-items:flex-start;gap:10px;color:#d92d20;background:#fff!important;border:1px solid #fecdca!important;padding:16px;border-radius:14px}.errorState b{font-size:11px;color:#b42318}.errorState p{font-size:10px;color:#667085;margin:4px 0 0}
+.lectureStack{gap:10px}.lectureCard{background:#fff!important;border:1px solid #e7ebf0!important;border-radius:16px!important;box-shadow:0 5px 20px rgba(16,24,40,.025)!important;padding:16px!important}.lectureCard:hover{border-color:#cfd8e6!important;box-shadow:0 12px 30px rgba(16,24,40,.06)!important}.lectureTime{font-size:8px!important;color:#667085}.lectureTime span{background:#eef4ff!important;color:#175cd3!important}.lectureInfo span{font-size:8px!important;color:#98a2b3}.lectureInfo h2{font-size:16px!important;letter-spacing:-.025em}.lectureInfo small{font-size:9px!important;color:#667085}
+.attendanceStats{gap:8px!important;margin-bottom:12px}.attendanceStats span{background:#fff!important;border:1px solid #e7ebf0!important;border-radius:12px!important;padding:10px 13px!important;font-size:9px!important}.attendanceStats b{font-size:13px!important;color:#101828}
+.studentToolbar{padding:10px!important;border-radius:14px!important}.adminSearch{border:1px solid #e7ebf0!important;border-radius:10px!important;background:#fff!important}.studentAdminTable{overflow:hidden}.studentAdminHead{font-size:7px!important}.studentAdminRow{font-size:9px!important}.studentAdminRow b{font-size:10px!important}
+.uploadGrid{gap:12px}.uploadCard{border-radius:16px!important;padding:18px!important}.uploadCard:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(16,24,40,.07)}
+.toast{border-radius:11px!important;box-shadow:0 10px 25px rgba(16,24,40,.10)!important}
+.desktopToggle{display:grid}
+.mobileOnly{display:none}
+@media(max-width:1000px){.companySide{position:fixed;z-index:50;inset:0 auto 0 0;transform:translateX(-105%);transition:transform .2s ease;width:280px!important}.companySide.open{transform:translateX(0)}.sideClose{display:grid}.companySideBottom{position:absolute}.desktopToggle{display:none}.mobileOnly{display:grid}.companyContent{padding:24px 20px 50px}}
+@media(max-width:640px){.companyTop{padding:0 15px}.topStatus{display:none}.companyContent{padding:20px 14px 40px}.companyContent .pageHead h1{font-size:28px}.lectureCard{display:flex!important;flex-direction:column;align-items:stretch!important}.lectureCard .primary{width:100%}.companyShell .portalStats{grid-template-columns:1fr 1fr!important}.companyShell .formTwo{grid-template-columns:1fr!important}}
