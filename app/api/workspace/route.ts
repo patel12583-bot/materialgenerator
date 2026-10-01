@@ -20,6 +20,8 @@ function canRead(role: string, page: string) {
     "Leave Status": ["ADMIN", "SUPER_ADMIN", "HOD", "FACULTY", "STUDENT", "PARENT"],
     Defaulters: ["ADMIN", "SUPER_ADMIN", "HOD"],
     Reports: ["ADMIN", "SUPER_ADMIN", "HOD", "FACULTY", "STUDENT", "PARENT"],
+    "Attendance Reports": ["ADMIN", "SUPER_ADMIN", "HOD", "FACULTY", "STUDENT", "PARENT"],
+    Examinations: ["STUDENT"],
     "My Attendance": ["STUDENT"],
     Notifications: ["ADMIN", "SUPER_ADMIN", "HOD", "STUDENT", "PARENT"],
     "Parent Alerts": ["ADMIN", "SUPER_ADMIN", "HOD"],
