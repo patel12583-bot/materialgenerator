@@ -148,7 +148,34 @@ export async function GET(req: Request) {
       }
       dailyHistory.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     }
-    return NextResponse.json({rows,subjectRows,threshold,dailyHistory,examEligibility:rows[0]?.eligible ?? false});
+
+    // Date-wise attendance report: the UI can request one calendar date without
+    // changing the normal overall/subject report.
+    const requestedDate = new URL(req.url).searchParams.get("date");
+    let dateReport:any[] = [];
+    if (requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
+      dateReport = students.flatMap(s => s.attendance
+        .filter(a => !a.session.examType && a.session.dateKey === requestedDate)
+        .map(a => ({
+          studentId:s.id,
+          studentName:s.name,
+          enrollmentNo:s.enrollmentNo,
+          rollNo:s.rollNo,
+          program:s.division.semester.program.code,
+          semester:s.division.semester.number,
+          division:s.division.name,
+          subject:a.session.subject.name,
+          code:a.session.subject.code,
+          status:a.status,
+        })))
+        .sort((a,b)=>Number(a.rollNo)-Number(b.rollNo) || String(a.subject).localeCompare(String(b.subject)));
+    }
+
+    return NextResponse.json({
+      rows,subjectRows,threshold,dailyHistory,dateReport,
+      requestedDate: requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) ? requestedDate : null,
+      examEligibility:rows[0]?.eligible ?? false
+    });
   }
 
   if (page === "Notifications" || page === "Parent Alerts") {
