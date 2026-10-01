@@ -17,9 +17,9 @@ const data = {
   Admin:["Overview","Departments","Students","Faculty","Accounts","Subjects","Master Timetable","Uploads","Leaves","Defaulters","Reports","Audit Logs","Settings"],
   "Super Admin":["Overview","Institutions","Administrators","Security","Audit Logs","Settings"],
   HOD:["Overview","Faculty","Students","Attendance Monitor","Uploads","Leaves","Defaulters","Reports","Settings"],
-  Faculty:["Overview","Today's Lectures","Attendance","Exam Attendance","Timetable","Uploads","Leave Requests","Adjustments","Reports","Settings"],
-  Student:["Overview","My Attendance","Timetable","Uploads","Leave Requests","Hall Tickets","Notifications","Reports","Settings"],
-  Parent:["Overview","Attendance","Uploads","Notifications","Leave Status","Reports","Settings"]
+  Faculty:["Overview","Today's Lectures","Attendance","Timetable","Attendance Reports","Exam Attendance","Uploads","Leave Requests","Adjustments","Reports","Settings"],
+  Student:["Overview","My Attendance","Timetable","Attendance Reports","Uploads","Leave Requests","Hall Tickets","Examinations","Notifications","Reports","Settings"],
+  Parent:["Overview","Attendance","Timetable","Attendance Reports","Uploads","Notifications","Leave Status","Reports","Settings"]
 } as const;
 
 type Role=keyof typeof data;
@@ -45,7 +45,7 @@ const groupsFor=(role:Role)=>{
   const groups=[
     {label:"Workspace",items:items.filter(x=>x==="Overview")},
     {label:"Academic",items:items.filter(x=>["Departments","Subjects","Master Timetable","Timetable","Today's Lectures","Faculty","Students","Attendance Monitor","Institutions","Administrators"].includes(x))},
-    {label:"Operations",items:items.filter(x=>["Attendance","My Attendance","Exam Attendance","Hall Tickets","Leave Requests","Leaves","Leave Status","Defaulters","Reports","Notifications","Adjustments"].includes(x))},
+    {label:"Operations",items:items.filter(x=>["Attendance","My Attendance","Attendance Reports","Exam Attendance","Hall Tickets","Examinations","Leave Requests","Leaves","Leave Status","Defaulters","Reports","Notifications","Adjustments"].includes(x))},
     {label:"System",items:items.filter(x=>["Uploads","Audit Logs","Security","Settings"].includes(x))}
   ];
   return groups.filter(x=>x.items.length);
@@ -104,7 +104,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
 
   async function logout(){await fetch("/api/auth/logout",{method:"POST"});location.href="/";}
 
-  const modulePage=new Set(["Overview","Subjects","Master Timetable","Timetable","Leaves","Leave Requests","Leave Status","Defaulters","Reports","My Attendance","Notifications","Audit Logs","Settings","Adjustments","Exam Attendance","Faculty","Students","Attendance Monitor","Administrators","Institutions","Security"]).has(page);
+  const modulePage=new Set(["Overview","Subjects","Master Timetable","Timetable","Leaves","Leave Requests","Leave Status","Defaulters","Reports","My Attendance","Notifications","Audit Logs","Settings","Adjustments","Exam Attendance","Faculty","Students","Attendance Monitor","Administrators","Institutions","Security","Attendance Reports","Examinations"]).has(page);
 
   return <div className={`portalShell companyShell ${collapsed?"sidebarCollapsed":""}`}>
     <aside className={`portalSide companySide ${open?"open":""}`}>
