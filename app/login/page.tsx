@@ -2,108 +2,29 @@
 
 import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowRight, GraduationCap, ShieldCheck, UsersRound } from "lucide-react";
+import { ArrowRight, GraduationCap, ShieldCheck, UsersRound, Eye, EyeOff, LockKeyhole } from "lucide-react";
 
-type PortalRole = "ADMIN" | "FACULTY" | "STUDENT";
-
-const roles: { id: PortalRole; title: string; description: string }[] = [
-  { id: "ADMIN", title: "Admin", description: "College administration" },
-  { id: "FACULTY", title: "Faculty", description: "Attendance & timetable" },
-  { id: "STUDENT", title: "Student", description: "Attendance & leave" },
+type PortalRole="ADMIN"|"FACULTY"|"STUDENT";
+const roles=[
+ {id:"ADMIN" as const,title:"Administration",desc:"Manage the institution",icon:ShieldCheck},
+ {id:"FACULTY" as const,title:"Faculty",desc:"Teach & record attendance",icon:UsersRound},
+ {id:"STUDENT" as const,title:"Student",desc:"View your academic record",icon:GraduationCap}
 ];
 
-function LoginForm() {
-  const params = useSearchParams();
-  const router = useRouter();
-  const initial = params.get("role")?.toUpperCase();
-  const [role, setRole] = useState<PortalRole>(
-    initial === "FACULTY" || initial === "STUDENT" || initial === "ADMIN" ? initial : "ADMIN"
-  );
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username, password, role }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unable to sign in.");
-      router.replace(data.redirect);
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to sign in.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <main className="loginPage">
-      <section className="loginBrand" aria-label="Noble Attendance">
-        <div className="loginGlow" aria-hidden="true" />
-        <div className="loginBrandInner">
-          <div className="loginLogo imageLogo"><img src="/noble-logo.jpg" alt="Noble Group of Institutions logo" /></div>
-          <span className="loginEyebrow">NOBLE GROUP OF INSTITUTIONS</span>
-          <h1>Attendance,<br /><em>kept simple.</em></h1>
-          <p>One secure workspace for college administration, faculty and students.</p>
-          <div className="loginTrust"><ShieldCheck size={16} /> Secure role-based access · Academic Year 2026–27</div>
-        </div>
-      </section>
-
-      <section className="loginPanel">
-        <div className="loginBox">
-          <a className="backLink" href="/">← Back to Noble</a>
-          <span className="loginEyebrow dark">SECURE ACCESS</span>
-          <h2>Sign in.</h2>
-          <p className="loginMuted">Choose your workspace, then sign in with your Noble credentials.</p>
-
-          <div className="roleGrid" role="tablist" aria-label="Choose portal">
-            {roles.map(({ id, title, description }) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={role === id}
-                className={`roleChoice roleChoiceButton ${role === id ? "active" : ""}`}
-                onClick={() => { setRole(id); setError(""); }}
-              >
-                {id === "ADMIN" ? <ShieldCheck size={15} /> : id === "FACULTY" ? <UsersRound size={15} /> : <GraduationCap size={15} />}
-                <span><b>{title}</b><small>{description}</small></span>
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={submit} noValidate>
-            <label htmlFor="username">Username / Enrollment number</label>
-            <div className="loginInput">
-              <input id="username" required autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} placeholder={role === "STUDENT" ? "NOBLE-BCA-001" : "Your username"} />
-            </div>
-            <label htmlFor="password">Password</label>
-            <div className="loginInput">
-              <input id="password" required type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" />
-            </div>
-            {error && <div className="loginError" role="alert">{error}</div>}
-            <button className="loginSubmit" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in"} <ArrowRight size={17} />
-            </button>
-          </form>
-
-          <a className="managedAccountLink loginSignupLink" href="/signup">Student account activation</a>
-          <small className="loginFooter">Access is limited by role and institution. Contact Noble Admin if your account is not active.</small>
-        </div>
-      </section>
-    </main>
-  );
+function LoginForm(){
+ const params=useSearchParams();const router=useRouter();
+ const initial=params.get("role")?.toUpperCase();
+ const [role,setRole]=useState<PortalRole>(initial==="FACULTY"||initial==="STUDENT"||initial==="ADMIN"?initial:"ADMIN");
+ const [username,setUsername]=useState("");const [password,setPassword]=useState("");const [show,setShow]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState("");
+ async function submit(e:FormEvent){e.preventDefault();setBusy(true);setError("");try{const r=await fetch("/api/auth/login",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({username,password,role})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Sign in could not be completed.");router.replace(d.redirect);router.refresh()}catch(e){setError(e instanceof Error?e.message:"Sign in could not be completed.")}finally{setBusy(false)}}
+ return <main className="authPage">
+   <section className="authVisual"><div className="authOrb one"/><div className="authOrb two"/><div className="authVisualInner"><a href="/" className="authBrand"><span className="authLogo"><img src="/noble-logo.jpg" alt="Noble Group of Institutions"/></span><span><b>Noble</b><small>Group of Institutions</small></span></a><div className="authMessage"><span className="corpKicker">SECURE INSTITUTIONAL ACCESS</span><h1>Everything your<br/><em>campus runs on.</em></h1><p>A single professional workspace for academic operations, attendance and institutional records.</p><div className="authFeature"><ShieldCheck size={17}/><span><b>Role-based access</b><small>Every workspace is protected by institutional permissions.</small></span></div><div className="authFeature"><LockKeyhole size={17}/><span><b>Secure session</b><small>Authenticated access to Noble academic data.</small></span></div></div><div className="authVisualFoot">NOBLE GROUP OF INSTITUTIONS · 2026–27</div></div></section>
+   <section className="authPanel"><div className="authBox"><a href="/" className="authBack">← Noble home</a><span className="corpKicker dark">SIGN IN</span><h2>Welcome back.</h2><p className="authMuted">Choose your workspace and enter your Noble credentials.</p>
+    <div className="authRoleGrid">{roles.map(({id,title,desc,icon:Icon})=><button key={id} type="button" className={role===id?"authRole active":"authRole"} onClick={()=>{setRole(id);setError("")}}><Icon size={16}/><span><b>{title}</b><small>{desc}</small></span></button>)}</div>
+    <form onSubmit={submit}><label htmlFor="username">Username / enrollment number</label><div className="authInput"><input id="username" required autoComplete="username" value={username} onChange={e=>setUsername(e.target.value)} placeholder={role==="STUDENT"?"Enrollment number":"Your username"}/></div><div className="authLabelRow"><label htmlFor="password">Password</label><span>Protected access</span></div><div className="authInput"><input id="password" required type={show?"text":"password"} autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/><button type="button" onClick={()=>setShow(v=>!v)} aria-label={show?"Hide password":"Show password"}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></div>{error&&<div className="authError">{error}</div>}<button className="authSubmit" disabled={busy}>{busy?"Signing in…":"Sign in"}<ArrowRight size={16}/></button></form>
+    {role==="STUDENT"&&<a href="/signup" className="authActivation">Need a student account? Activate it <ArrowRight size={13}/></a>}
+    <small className="authLegal">Access is limited by role and institution. If your account is not active, contact Noble Administration.</small>
+   </div></section>
+ </main>;
 }
-
-export default function LoginPage() {
-  return <Suspense><LoginForm /></Suspense>;
-}
+export default function LoginPage(){return <Suspense><LoginForm/></Suspense>}
