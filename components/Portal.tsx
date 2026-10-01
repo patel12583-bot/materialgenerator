@@ -6,7 +6,7 @@ import AdminAccounts from "@/components/AdminAccounts";
 import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import { useEffect, useState } from "react";
-import { BarChart3, Bell, CalendarDays, Check, CheckCircle2, ClipboardCheck, GraduationCap, LogOut, Menu, Settings, Users, X } from "lucide-react";
+import { BarChart3, Bell, CalendarDays, Check, CheckCircle2, ClipboardCheck, Download, GraduationCap, LogOut, Menu, Settings, Users, X } from "lucide-react";
 
 const data={Admin:["Overview","Departments","Students","Faculty","Accounts","Subjects","Master Timetable","Uploads","Leaves","Defaulters","Reports","Audit Logs","Settings"],"Super Admin":["Overview","Institutions","Administrators","Security","Audit Logs","Settings"],HOD:["Overview","Faculty","Students","Attendance Monitor","Uploads","Leaves","Defaulters","Reports","Settings"],Faculty:["Overview","Today's Lectures","Attendance","Exam Attendance","Timetable","Uploads","Leave Requests","Adjustments","Reports","Settings"],Student:["Overview","My Attendance","Timetable","Uploads","Leave Requests","Hall Tickets","Notifications","Reports","Settings"],Parent:["Overview","Attendance","Uploads","Notifications","Leave Status","Settings"]} as const;
 type Role=keyof typeof data; type Status="PRESENT"|"ABSENT"|"EXAM_ONLY"|"ON_LEAVE"|"LATE_PRESENT";
