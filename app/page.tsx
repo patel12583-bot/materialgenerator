@@ -10,8 +10,11 @@ const products=[
 
 const portals=[
   {icon:ShieldCheck,name:"Administration",role:"Admin",desc:"Structure, students, faculty, accounts, timetable, reports and audit.",href:"/login?role=ADMIN"},
+  {icon:ShieldCheck,name:"Super Admin",role:"Super Admin",desc:"Platform governance, security, administrators and institutional control.",href:"/login?role=SUPER_ADMIN"},
+  {icon:Users,name:"HOD workspace",role:"HOD",desc:"Department faculty, students, attendance monitoring, leave and reports.",href:"/login?role=HOD"},
   {icon:Users,name:"Faculty workspace",role:"Faculty",desc:"Today's lectures, classroom attendance, timetable, leaves and reports.",href:"/login?role=FACULTY"},
-  {icon:GraduationCap,name:"Student workspace",role:"Student",desc:"Attendance, timetable, leave requests, examination documents and notifications.",href:"/login?role=STUDENT"}
+  {icon:GraduationCap,name:"Student workspace",role:"Student",desc:"Attendance, timetable, leave requests, hall tickets and notifications.",href:"/login?role=STUDENT"},
+  {icon:Users,name:"Parent workspace",role:"Parent",desc:"Family attendance, leave status, notifications and academic reports.",href:"/login?role=PARENT"}
 ];
 
 export default function Home(){
