@@ -114,7 +114,30 @@ export async function GET(req: Request) {
     return NextResponse.json({defaulters,subjectDefaulters,warningHistory,threshold});
   }
 
-  if (page === "Reports" || page === "My Attendance") {
+  if (page === "Examinations") {
+    const studentWhere:any = {userId: session.userId};
+    const student = session.role === "STUDENT" ? await prisma.student.findUnique({
+      where: studentWhere,
+      include:{division:{include:{semester:{include:{program:true}}}}}
+    }) : null;
+    const exams = await prisma.examSession.findMany({
+      where: {
+        institutionId,
+        ...(student ? {divisionId: student.divisionId} : {}),
+      },
+      include:{subject:true, division:{include:{semester:{include:{program:true}}}}},
+      orderBy:[{dateKey:"asc"},{subject:{code:"asc"}}],
+      take:100
+    });
+    return NextResponse.json({student, exams});
+  }
+
+  if (page === "Attendance Reports") {
+    const pageForReport = "Reports";
+    // Continue through the same database-backed report query used by Reports.
+  }
+
+  if (page === "Reports" || page === "Attendance Reports" || page === "My Attendance") {
     const studentWhere:any = {division:{semester:{program:{department:{institutionId}}}}};
     if(session.role==="STUDENT") studentWhere.userId=session.userId;
     const students = await prisma.student.findMany({where:studentWhere,include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null}},include:{session:{include:{subject:true}}}}}});
