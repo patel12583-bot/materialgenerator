@@ -14,6 +14,11 @@ export async function GET(req: Request) {
   if(!["ADMIN","SUPER_ADMIN","FACULTY","HOD","STUDENT"].includes(user.role)) return NextResponse.json({error:"Forbidden"},{status:403});
   try{
     const result=await get(leave.documentUrl,{access:"private"});
-    return new Response(result.stream,{headers:{"Content-Type":result.blob.contentType||"application/octet-stream","Cache-Control":"private, no-store"}});
+    if (!result || !result.blob || !result.stream) {
+      return NextResponse.json({error:"Document not found."},{status:404});
+    }
+    const stream=result.stream;
+    const contentType=result.blob.contentType || "application/octet-stream";
+    return new Response(stream,{headers:{"Content-Type":contentType,"Cache-Control":"private, no-store"}});
   }catch(error){console.error("leave document error",error);return NextResponse.json({error:"Unable to read document."},{status:500});}
 }
