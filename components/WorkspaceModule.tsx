@@ -97,10 +97,122 @@ function Defaulters({data,post,busy,message}:any){
  <div className="card studentAdminTable" style={{marginTop:14}}><div className="cardHead"><div><span className="eyebrow">WARNING HISTORY</span><h2>Defaulter warnings</h2></div></div><div className="studentAdminHead"><span>CHANNEL</span><span>RECIPIENT</span><span>STUDENT</span><span>STATUS</span><span>DATE</span></div>{(data.warningHistory||[]).map((x:any)=><div className="studentAdminRow" key={x.id}><span>{x.channel}</span><span>{x.recipient}</span><span>{x.payload?.studentName} · {x.payload?.percentage}%</span><span>{x.status}</span><span>{new Date(x.createdAt).toLocaleString()}</span></div>)}</div></div>
 }
 
-function AttendanceCalendar({daily}:{daily:any[]}){const [month,setMonth]=useState(()=>new Date().toISOString().slice(0,7));const [y,m]=month.split("-").map(Number);const first=new Date(y,m-1,1).getDay();const daysIn=new Date(y,m,0).getDate();const byDate=new Map<string,string>();for(const x of daily){const prev=byDate.get(x.date);byDate.set(x.date,prev==="ABSENT"||x.status==="ABSENT"?"ABSENT":prev==="ON_LEAVE"||x.status==="ON_LEAVE"?"ON_LEAVE":prev==="LATE_PRESENT"||x.status==="LATE_PRESENT"?"LATE_PRESENT":"PRESENT")}return <div className="card" style={{marginTop:14}}><div className="cardHead"><div><span className="eyebrow">MONTHLY CALENDAR</span><h2>Attendance calendar</h2></div><input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=><b key={d} style={{fontSize:11,padding:6}}>{d}</b>)}{Array.from({length:first}).map((_,i)=><span key={"e"+i}/>) }{Array.from({length:daysIn},(_,i)=>{const d=String(i+1).padStart(2,"0"),key=`${month}-${d}`,status=byDate.get(key);return <div key={key} style={{minHeight:46,padding:7,border:"1px solid #eef0f3",borderRadius:10,fontSize:11}}><b>{i+1}</b><div>{status||"—"}</div></div>})}</div></div>}
+function AttendanceCalendar({daily,onSelectDate}:{daily:any[];onSelectDate?:(date:string)=>void}){
+ const [month,setMonth]=useState(()=>new Date().toISOString().slice(0,7));
+ const [y,m]=month.split("-").map(Number);
+ const first=new Date(y,m-1,1).getDay();
+ const daysIn=new Date(y,m,0).getDate();
+ const byDate=new Map<string,string>();
+ for(const x of daily){
+   const prev=byDate.get(x.date);
+   byDate.set(x.date,prev==="ABSENT"||x.status==="ABSENT"?"ABSENT":prev==="ON_LEAVE"||x.status==="ON_LEAVE"?"ON_LEAVE":prev==="LATE_PRESENT"||x.status==="LATE_PRESENT"?"LATE_PRESENT":"PRESENT");
+ }
+ const statusLabel=(status:string)=>status==="PRESENT"?"Present":status==="ABSENT"?"Absent":status==="ON_LEAVE"?"Leave":status==="LATE_PRESENT"?"Late":"";
+ return <div className="card" style={{marginTop:14}}>
+  <div className="cardHead"><div><span className="eyebrow">MONTHLY CALENDAR</span><h2>Attendance calendar</h2><small>Click any marked date to open its date-wise report.</small></div><input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></div>
+  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
+   {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=><b key={d} style={{fontSize:11,padding:6}}>{d}</b>)}
+   {Array.from({length:first}).map((_,i)=><span key={"e"+i}/>)}
+   {Array.from({length:daysIn},(_,i)=>{
+     const d=String(i+1).padStart(2,"0"),key=`${month}-${d}`,status=byDate.get(key);
+     return <button type="button" key={key} onClick={()=>status&&onSelectDate?.(key)} disabled={!status}
+       style={{minHeight:58,padding:7,border:"1px solid #eef0f3",borderRadius:10,fontSize:11,textAlign:"left",background:status?"#f8fbff":"white",cursor:status?"pointer":"default"}}>
+       <b>{i+1}</b><div>{status?statusLabel(status):"—"}</div>
+     </button>
+   })}
+  </div>
+ </div>
+}
 
-function Reports({data,role}:any){const rows=data.rows||[];const subjects=data.subjectRows||[];const threshold=data.threshold??75;const daily=data.dailyHistory||[];return <div className="adminWorkspace"><div className="pageHead"><div><span className="eyebrow">{role.toUpperCase()} · REPORTS</span><h1>Attendance <em>reports.</em></h1><p>Regular attendance excludes Exam Only and approved Leave.</p></div><button className="secondaryBtn" onClick={()=>window.print()}><Download size={14}/> Print / PDF</button></div>{role==="Student"&&<div className="portalStats" style={{marginBottom:14}}><div className="metric"><span>Overall</span><b>{rows[0]?.percentage??0}%</b><small>{rows[0]?.eligible?"Exam eligible":"Below threshold"}</small></div><div className="metric"><span>Threshold</span><b>{threshold}%</b><small>Institution policy</small></div></div>}<div className="card studentAdminTable"><div className="studentAdminHead"><span>STUDENT</span><span>CLASS</span><span>PRESENT</span><span>LEAVE</span><span>PERCENTAGE</span></div>{rows.map((x:any)=><div className="studentAdminRow" key={x.id}><div><b>{x.name}</b><small>{x.enrollmentNo}</small></div><span>{x.program} · Sem {x.semester} · Div {x.division}</span><span>{x.present}/{x.total}</span><span>{x.leave}</span><span className={x.percentage<threshold?"accountPending":"accountReady"}>{x.percentage}% · {x.eligible?"Eligible":"Not eligible"}</span></div>)}</div>{subjects.length>0&&<div className="card studentAdminTable" style={{marginTop:14}}><div className="cardHead"><div><span className="eyebrow">SUBJECT-WISE</span><h2>Attendance by subject</h2></div></div><div className="studentAdminHead"><span>STUDENT</span><span>SUBJECT</span><span>PRESENT</span><span>LEAVE</span><span>PERCENTAGE</span></div>{subjects.map((x:any)=><div className="studentAdminRow" key={x.studentId+x.subjectId}><div><b>{x.studentName}</b><small>{x.enrollmentNo}</small></div><span>{x.code} · {x.name}</span><span>{x.present}/{x.total}</span><span>{x.leave}</span><span className={x.percentage<threshold?"accountPending":"accountReady"}>{x.percentage}% · {x.eligible?"Eligible":"Not eligible"}</span></div>)}</div>}{role==="Student"&&<AttendanceCalendar daily={daily}/>} {role==="Student"&&<div className="card studentAdminTable" style={{marginTop:14}}><div className="cardHead"><div><span className="eyebrow">DAILY HISTORY</span><h2>Recent lecture history</h2></div></div><div className="studentAdminHead"><span>DATE</span><span>SUBJECT</span><span>CODE</span><span>STATUS</span></div>{daily.map((x:any)=><div className="studentAdminRow" key={x.date+x.code+x.subject}><span>{x.date}</span><span>{x.subject}</span><span>{x.code}</span><span>{x.status}</span></div>)}</div>}</div>}
+function Reports({data,role}:any){
+ const [viewData,setViewData]=useState(data);
+ const [selectedDate,setSelectedDate]=useState<string>("");
+ const [dateLoading,setDateLoading]=useState(false);
+ const rows=viewData.rows||[];
+ const subjects=viewData.subjectRows||[];
+ const threshold=viewData.threshold??75;
+ const daily=viewData.dailyHistory||[];
+ const dateReport=viewData.dateReport||[];
 
+ async function loadDate(date:string){
+   setSelectedDate(date);
+   setDateLoading(true);
+   try{
+     const r=await fetch("/api/workspace?page=Reports&date="+encodeURIComponent(date),{cache:"no-store"});
+     const d=await r.json();
+     if(!r.ok) throw new Error(d.error||"Unable to load date report.");
+     setViewData(d);
+   }catch(e){
+     alert(e instanceof Error?e.message:"Unable to load date report.");
+   }finally{setDateLoading(false);}
+ }
+ function exportCsv(){
+   if(!dateReport.length)return;
+   const headers=["Date","Roll","Student","Enrollment","Class","Subject","Code","Status"];
+   const csv=[
+     headers.join(","),
+     ...dateReport.map((x:any)=>[
+       selectedDate,x.rollNo,x.studentName,x.enrollmentNo,
+       `${x.program} Sem ${x.semester} Div ${x.division}`,
+       x.subject,x.code,x.status
+     ].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(","))
+   ].join("\n");
+   const a=document.createElement("a");
+   a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+   a.download=`attendance-${selectedDate}.csv`;
+   a.click();
+   URL.revokeObjectURL(a.href);
+ }
+ return <div className="adminWorkspace">
+  <div className="pageHead">
+   <div><span className="eyebrow">{role.toUpperCase()} · REPORTS</span><h1>Attendance <em>reports.</em></h1><p>Regular attendance excludes Exam Only and approved Leave. Select a calendar date for a complete daily report.</p></div>
+   <button className="secondaryBtn" onClick={()=>window.print()}><Download size={14}/> Print / PDF</button>
+  </div>
+
+  {role==="Student"&&<div className="portalStats" style={{marginBottom:14}}>
+   <div className="metric"><span>Overall</span><b>{rows[0]?.percentage??0}%</b><small>{rows[0]?.eligible?"Exam eligible":"Below threshold"}</small></div>
+   <div className="metric"><span>Threshold</span><b>{threshold}%</b><small>Institution policy</small></div>
+  </div>}
+
+  <div className="card" style={{marginBottom:14}}>
+   <div className="cardHead"><div><span className="eyebrow">DATE-WISE REPORT</span><h2>Choose attendance date</h2></div><CalendarDays size={18}/></div>
+   <div className="formTwo">
+    <div className="adminForm"><label>Attendance date</label><input type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
+    <div className="adminForm" style={{justifyContent:"end"}}><label>&nbsp;</label><button className="primary" disabled={!selectedDate||dateLoading} onClick={()=>loadDate(selectedDate)}>{dateLoading?"Loading…":"Open date report"} <Search size={14}/></button></div>
+   </div>
+   {selectedDate&&<div className="cardHead" style={{marginTop:14}}>
+     <div><span className="eyebrow">{selectedDate}</span><h2>{dateReport.length} attendance record(s)</h2></div>
+     <button className="secondaryBtn" disabled={!dateReport.length} onClick={exportCsv}><Download size={14}/> Download CSV</button>
+   </div>}
+   {selectedDate&&<div className="card studentAdminTable" style={{marginTop:10}}>
+    <div className="studentAdminHead"><span>ROLL</span><span>STUDENT</span><span>CLASS</span><span>SUBJECT</span><span>STATUS</span></div>
+    {dateReport.length?dateReport.map((x:any)=><div className="studentAdminRow" key={x.studentId+x.code+x.status}>
+      <b>{x.rollNo}</b><div><b>{x.studentName}</b><small>{x.enrollmentNo}</small></div>
+      <span>{x.program} · Sem {x.semester} · Div {x.division}</span><span>{x.code} · {x.subject}</span>
+      <span className={x.status==="ABSENT"?"accountPending":"accountReady"}>{x.status.replace("_"," ")}</span>
+    </div>):<div className="emptyState">{dateLoading?"Loading…":"No attendance records found for this date."}</div>}
+   </div>}
+  </div>
+
+  <div className="card studentAdminTable">
+   <div className="studentAdminHead"><span>STUDENT</span><span>CLASS</span><span>PRESENT</span><span>LEAVE</span><span>PERCENTAGE</span></div>
+   {rows.map((x:any)=><div className="studentAdminRow" key={x.id}><div><b>{x.name}</b><small>{x.enrollmentNo}</small></div><span>{x.program} · Sem {x.semester} · Div {x.division}</span><span>{x.present}/{x.total}</span><span>{x.leave}</span><span className={x.percentage<threshold?"accountPending":"accountReady"}>{x.percentage}% · {x.eligible?"Eligible":"Not eligible"}</span></div>)}
+  </div>
+
+  {subjects.length>0&&<div className="card studentAdminTable" style={{marginTop:14}}>
+   <div className="cardHead"><div><span className="eyebrow">SUBJECT-WISE</span><h2>Attendance by subject</h2></div></div>
+   <div className="studentAdminHead"><span>STUDENT</span><span>SUBJECT</span><span>PRESENT</span><span>LEAVE</span><span>PERCENTAGE</span></div>
+   {subjects.map((x:any)=><div className="studentAdminRow" key={x.studentId+x.subjectId}><div><b>{x.studentName}</b><small>{x.enrollmentNo}</small></div><span>{x.code} · {x.name}</span><span>{x.present}/{x.total}</span><span>{x.leave}</span><span className={x.percentage<threshold?"accountPending":"accountReady"}>{x.percentage}% · {x.eligible?"Eligible":"Not eligible"}</span></div>)}
+  </div>}
+
+  {role==="Student"&&<AttendanceCalendar daily={daily} onSelectDate={loadDate}/>}
+  {role==="Student"&&<div className="card studentAdminTable" style={{marginTop:14}}>
+   <div className="cardHead"><div><span className="eyebrow">DAILY HISTORY</span><h2>Recent lecture history</h2></div></div>
+   <div className="studentAdminHead"><span>DATE</span><span>SUBJECT</span><span>CODE</span><span>STATUS</span></div>
+   {daily.map((x:any)=><div className="studentAdminRow" key={x.date+x.code+x.subject}><span>{x.date}</span><span>{x.subject}</span><span>{x.code}</span><span>{x.status}</span></div>)}
+  </div>}
+ </div>
+}
 function Notifications({data}:any){return <div className="adminWorkspace"><div className="pageHead"><div><span className="eyebrow">NOTIFICATIONS</span><h1>Alert <em>centre.</em></h1><p>Attendance alerts queued for SMS and WhatsApp delivery.</p></div></div><div className="card studentAdminTable"><div className="studentAdminHead"><span>CHANNEL</span><span>RECIPIENT</span><span>MESSAGE</span><span>STATUS</span><span>CREATED</span></div>{(data.notifications||[]).map((x:any)=><div className="studentAdminRow" key={x.id}><b>{x.channel}</b><span>{x.recipient}</span><span>{x.payload?.studentName} · {x.payload?.subject}</span><span className="accountPending">{x.status}</span><span>{new Date(x.createdAt).toLocaleString()}</span></div>)}</div></div>}
 
 function AuditLogs({data}:any){return <div className="adminWorkspace"><div className="pageHead"><div><span className="eyebrow">AUDIT · HISTORY</span><h1>Audit <em>log.</em></h1><p>Who changed what, and when.</p></div></div><div className="card studentAdminTable"><div className="studentAdminHead"><span>ACTOR</span><span>ACTION</span><span>ENTITY</span><span>ENTITY ID</span><span>TIME</span></div>{(data.logs||[]).map((x:any)=><div className="studentAdminRow" key={x.id}><div><b>{x.actor.username}</b><small>{x.actor.role}</small></div><span>{x.action}</span><span>{x.entity}</span><span>{x.entityId}</span><span>{new Date(x.createdAt).toLocaleString()}</span></div>)}</div></div>}
