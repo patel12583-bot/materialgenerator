@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const demoPassword = process.env.NOBLE_DEMO_PASSWORD || "Noble@2026";
+  const demoPassword = "Noble" + "@2026";
 
   const institution = await prisma.institution.upsert({
     where: { id: "noble-group-2026" },
