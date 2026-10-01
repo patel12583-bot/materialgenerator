@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, RefreshCw, Search, Users, UserPlus } from "lucide-react";
+import { Plus, RefreshCw, Search, Upload, Users, UserPlus } from "lucide-react";
 
 type Division={id:string;name:string;semester:{number:number;program:{name:string;code:string}}};
 type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
@@ -12,6 +12,7 @@ export default function AdminStudents(){
  const [q,setQ]=useState("");
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
+ const [uploadBusy,setUploadBusy]=useState(false);
  const [message,setMessage]=useState("");
  const [open,setOpen]=useState(false);
  const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
@@ -27,6 +28,18 @@ export default function AdminStudents(){
   finally{setLoading(false);}
  }
  useEffect(()=>{load()},[]);
+
+ async function uploadStudentList(file:File){
+  setUploadBusy(true);setMessage("");
+  try{
+   const body=new FormData();body.append("file",file);body.append("category","student-list");
+   const r=await fetch("/api/uploads",{method:"POST",body});
+   const d=await r.json();
+   if(!r.ok) throw new Error(d.error||"Unable to upload student list.");
+   setMessage("Student list uploaded successfully. Open Uploads to review the uploaded file.");
+  }catch(e){setMessage(e instanceof Error?e.message:"Unable to upload student list.");}
+  finally{setUploadBusy(false);}
+ }
 
  async function createStudent(e:React.FormEvent){
   e.preventDefault();setBusy(true);setMessage("");
@@ -44,7 +57,13 @@ export default function AdminStudents(){
  return <div className="adminWorkspace">
   <div className="pageHead">
    <div><span className="eyebrow">ADMIN · STUDENT MANAGEMENT</span><h1>Manage <em>students.</em></h1><p>Create official student records first; students then activate their own login account.</p></div>
-   <button className="primary" onClick={()=>setOpen(true)}><UserPlus size={15}/> Add student</button>
+   <div style={{display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}}>
+    <label className="secondaryBtn" style={{cursor:uploadBusy?"wait":"pointer",opacity:uploadBusy?0.65:1}}>
+     <Upload size={15}/>{uploadBusy?"Uploading…":"Upload students"}
+     <input type="file" accept=".csv,.xlsx,.xls,.pdf,.doc,.docx" hidden disabled={uploadBusy} onChange={e=>{const file=e.target.files?.[0];if(file)uploadStudentList(file);e.currentTarget.value=""}}/>
+    </label>
+    <button className="primary" onClick={()=>setOpen(true)}><UserPlus size={15}/> Add student</button>
+   </div>
   </div>
   <div className="studentToolbar card">
    <div className="adminSearch"><Search size={15}/><input value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==="Enter"&&load()} placeholder="Search name, enrollment or roll number"/></div>
