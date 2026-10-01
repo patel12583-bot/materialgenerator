@@ -98,7 +98,7 @@ export async function GET(req: Request) {
   if (page === "Defaulters") {
     const policy = await prisma.institution.findUnique({where:{id:institutionId},select:{minimumAttendance:true}});
     const threshold = policy?.minimumAttendance ?? 75;
-    const students = await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId}}}}},include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null},status:{notIn:["EXAM_ONLY","ON_LEAVE"]}}}}});
+    const students = await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId}}}}},include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null},status:{notIn:["EXAM_ONLY","ON_LEAVE"]}},include:{session:{include:{subject:true}}}}}});
     const defaulters = students.map(s => {
       const total=s.attendance.length, present=s.attendance.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length;
       return {id:s.id,name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,parentPhone:s.parentPhone,program:s.division.semester.program.code,semester:s.division.semester.number,division:s.division.name,present,total,percentage:pct(present,total)};
@@ -118,7 +118,7 @@ export async function GET(req: Request) {
     const studentWhere:any = {division:{semester:{program:{department:{institutionId}}}}};
     if(session.role==="STUDENT") studentWhere.userId=session.userId;
     const students = await prisma.student.findMany({where:studentWhere,include:{division:{include:{semester:{include:{program:true}}}},attendance:{where:{session:{examType:null}},include:{session:{include:{subject:true}}}}}});
-    const rows=students.map(s=>{
+    const rows:any[] = students.map(s=>{
       const regular=s.attendance.filter(a=>a.status!=="EXAM_ONLY"&&a.status!=="ON_LEAVE");
       const present=regular.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length;
       const leave=s.attendance.filter(a=>a.status==="ON_LEAVE").length;
