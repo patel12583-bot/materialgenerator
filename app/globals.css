@@ -135,3 +135,13 @@
 @media(max-width:600px){.homeHero{padding:20px 22px 55px;min-height:62vh}.homeHeader{align-items:flex-start}.homeYear{display:none}.homeHeroContent{margin-top:80px}.homeHero h1{font-size:49px}.homeBody{padding:38px 22px 25px}.homeIntro,.homeSectionHead{align-items:flex-start;flex-direction:column}.homeFeatureGrid{grid-template-columns:1fr}.homeFooter{align-items:flex-start;gap:15px;flex-direction:column}}
 
 .homeClickable{text-decoration:none;color:inherit;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.homeClickable:hover{transform:translateY(-3px);border-color:#d4d9e1;box-shadow:0 16px 35px #1118270d}.homeCardAction{display:flex;align-items:center;gap:6px;margin-top:17px;padding-top:12px;border-top:1px solid #eef0f3;color:#667085;font-size:9px;font-weight:800}.homePortalLine{transition:color .18s ease}.homeClickable:hover .homePortalLine{color:#111827}
+
+
+/* Upload center */
+.uploadGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.uploadCard{appearance:none;border:1px solid #e4e7ec;background:#fff;border-radius:18px;padding:20px;text-align:left;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.uploadCard:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(16,24,40,.08);border-color:#b8c4d8}
+.uploadCard:disabled{opacity:.65;cursor:wait}
+.uploadIcon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#f2f6ff;color:#2563eb}
+.uploadCard b{font-size:16px}.uploadCard p{margin:0;color:#667085;line-height:1.5;font-size:13px}.uploadCard small{color:#98a2b3;font-size:10px;letter-spacing:.03em}.uploadCard span{margin-top:5px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;color:#175cd3}
+@media(max-width:760px){.uploadGrid{grid-template-columns:1fr}}
