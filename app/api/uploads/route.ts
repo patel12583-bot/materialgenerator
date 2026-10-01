@@ -16,6 +16,9 @@ export async function POST(req: Request) {
   if (!user || !allowedRoles.has(user.role)) return NextResponse.json({error:"Unauthorized"},{status:401});
 
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json({error:"Vercel Blob is not connected to this deployment. Redeploy after adding the Blob store."},{status:503});
+    }
     const form = await req.formData();
     const file = form.get("file");
     const category = safe(String(form.get("category") || "general"));
