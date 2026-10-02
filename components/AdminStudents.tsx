@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, RefreshCw, Search, Upload, Users, UserPlus, Pencil, UserX, CheckCircle2, Download, RotateCcw } from "lucide-react";
 
 type Division={id:string;name:string;semester:{number:number;program:{name:string;code:string}}};
-type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{id:string;active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
+type Student={id:string;name:string;enrollmentNo:string;rollNo:string;status:string;phone:string|null;parentPhone:string|null;division:Division;user:{id:string;active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
 
 export default function AdminStudents(){
  const [students,setStudents]=useState<Student[]>([]);
@@ -15,7 +15,7 @@ export default function AdminStudents(){
  const [uploadBusy,setUploadBusy]=useState(false); const [importReport,setImportReport]=useState<{importedCount:number;skippedCount:number;students:any[];errors:string[]}|null>(null);
  const [message,setMessage]=useState(""); const [credentials,setCredentials]=useState<{studentId:string;password:string}|null>(null);
  const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Student|null>(null);
- const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
+ const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:"",status:"ACTIVE"});
 
  async function load(){
   setLoading(true);
@@ -75,7 +75,7 @@ export default function AdminStudents(){
    const d=await r.json();
    if(!r.ok) throw new Error(d.error||"Unable to create student.");
    setMessage("Student created successfully. Save the generated credentials below."); setCredentials(d.credentials||null);
-   setForm({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
+   setForm({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:"",status:"ACTIVE"});
    setOpen(false);await load();
   }catch(e){setMessage(e instanceof Error?e.message:"Unable to create student.");}
   finally{setBusy(false);}
@@ -100,15 +100,15 @@ export default function AdminStudents(){
   {message&&<div className="loginError adminMessage">{message}</div>}
   {importReport&&<div className="card" style={{marginTop:12}}><div className="eyebrow">IMPORT RESULT</div><h3 style={{margin:"7px 0"}}>{importReport.importedCount} students added</h3>{importReport.skippedCount>0&&<p className="quickText">{importReport.skippedCount} rows skipped. {importReport.errors.slice(0,5).join(" ")}</p>}{importReport.students.length>0&&<details style={{marginTop:10}}><summary>View generated credentials</summary><button type="button" className="secondaryBtn" style={{marginTop:8}} onClick={downloadCredentials}><Download size={14}/> Download credentials CSV</button><div style={{marginTop:10,display:"grid",gap:6}}>{importReport.students.map((s:any)=><div key={s.enrollmentNo} className="quickText"><b>{s.name}</b> · {s.enrollmentNo} · password: <code>{s.password}</code></div>)}</div></details>}</div>}{credentials&&<div className="card" style={{marginTop:12}}><div className="eyebrow">GENERATED STUDENT CREDENTIALS</div><p style={{margin:"8px 0"}}><b>Student ID:</b> {credentials.studentId}</p><p style={{margin:"8px 0"}}><b>Password:</b> {credentials.password}</p><small className="quickText">Save these credentials now. The password is stored only as a secure hash.</small></div>}
   <div className="card studentAdminTable">
-   <div className="studentAdminHead"><span>STUDENT</span><span>ENROLLMENT</span><span>CLASS</span><span>CONTACT</span><span>ACCOUNT</span></div>
+   <div className="studentAdminHead"><span>STUDENT</span><span>ENROLLMENT</span><span>CLASS</span><span>CONTACT</span><span>STATUS</span><span>ACTION</span></div>
    {loading?<div className="emptyState">Loading students…</div>:students.length===0?<div className="emptyState">No students found. Add the first student record.</div>:students.map(s=><div className="studentAdminRow" key={s.id}>
     <div><b>{s.name}</b><small>Roll No. {s.rollNo}</small></div>
     <span>{s.enrollmentNo}</span>
     <span>{s.division.semester.program.code} · Sem {s.division.semester.number} · Div {s.division.name}</span>
     <span><small>{s.phone||"No mobile"}</small><small>{s.parentPhone||"No parent mobile"}</small></span>
-    <span className={s.user.active?"accountReady":"accountPending"}>{!s.user.active?"Deactivated":s.user.passwordConfigured?"Active":"Pending activation"}</span>
+    <span className={"status "+String((s as any).status||"ACTIVE").toLowerCase()}>{String((s as any).status||"ACTIVE")}</span>
     <div style={{display:"flex",gap:6}}>
-      <button className="iconBtn" title="Edit student" onClick={()=>{setEditing(s);setForm({name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,divisionId:s.division.id,phone:s.phone||"",parentPhone:s.parentPhone||"",email:s.user.email||""})}}><Pencil size={14}/></button>
+      <button className="iconBtn" title="Edit student" onClick={()=>{setEditing(s);setForm({name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,divisionId:s.division.id,phone:s.phone||"",parentPhone:s.parentPhone||"",email:s.user.email||"",status:(s as any).status||"ACTIVE"})}}><Pencil size={14}/></button>
       {s.user.active?<button className="iconBtn" title="Deactivate student" onClick={()=>deactivateStudent(s)} disabled={busy}><UserX size={14}/></button>:<button className="iconBtn" title="Reactivate student" onClick={()=>reactivateStudent(s)} disabled={busy}><RotateCcw size={14}/></button>}
     </div>
    </div>)}
@@ -121,6 +121,7 @@ export default function AdminStudents(){
     <label>Division</label><select required value={form.divisionId} onChange={e=>setForm({...form,divisionId:e.target.value})}><option value="">Select division</option>{divisions.map(d=><option key={d.id} value={d.id}>{d.semester.program.code} · Sem {d.semester.number} · Div {d.name}</option>)}</select>
     <div className="formTwo"><div><label>Student mobile</label><input inputMode="numeric" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="10-digit mobile"/></div><div><label>Parent mobile</label><input inputMode="numeric" value={form.parentPhone} onChange={e=>setForm({...form,parentPhone:e.target.value})} placeholder="10-digit mobile"/></div></div>
     <label>Email (optional)</label><input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="student@example.com"/>
+    {editing&&<label>Student status<select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option><option value="SUSPENDED">Suspended</option><option value="TRANSFERRED">Transferred</option><option value="ALUMNI">Alumni</option><option value="GRADUATED">Graduated</option></select></label>}
     <button className="primary fullBtn" disabled={busy}>{busy?(editing?"Saving…":"Creating…"):(editing?"Save changes":"Create student")} {editing?<CheckCircle2 size={14}/>:<Plus size={14}/>}</button>
    </form>
   </div></div>}
