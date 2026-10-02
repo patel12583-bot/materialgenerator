@@ -3,6 +3,7 @@
 import AdminWorkspace from "@/components/AdminWorkspace";
 import AdminStudents from "@/components/AdminStudents";
 import AdminAccounts from "@/components/AdminAccounts";
+import FacultyManagement from "@/components/FacultyManagement";
 import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import { useEffect, useMemo, useState } from "react";
@@ -146,6 +147,8 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Departments"&&role==="Admin"?<AdminWorkspace/>
           :page==="Students"&&role==="Admin"?<AdminStudents/>
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
+          :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
+          :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
           :page==="Today's Lectures"&&role==="Faculty"?<FacultyToday lectures={lectures} currentTime={currentTime} onStart={startAttendance} busy={busy}/>
           :page==="Hall Tickets"&&role==="Student"?<HallTickets/>
           :page==="Examinations"&&role==="Student"?<Examinations/>
