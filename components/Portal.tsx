@@ -11,6 +11,7 @@ import AcademicStructure from "@/components/AcademicStructure";
 import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import HODManagement from "@/components/HODManagement";
+import AdmissionManagement from "@/components/AdmissionManagement";
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity, BarChart3, Bell, BookOpen, CalendarDays, Check, CheckCircle2,
