@@ -12,7 +12,7 @@ export default function AdminStudents(){
  const [q,setQ]=useState("");
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
- const [uploadBusy,setUploadBusy]=useState(false);
+ const [uploadBusy,setUploadBusy]=useState(false); const [importReport,setImportReport]=useState<{importedCount:number;skippedCount:number;students:any[];errors:string[]}|null>(null);
  const [message,setMessage]=useState(""); const [credentials,setCredentials]=useState<{studentId:string;password:string}|null>(null);
  const [open,setOpen]=useState(false);
  const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
@@ -30,17 +30,18 @@ export default function AdminStudents(){
  useEffect(()=>{load()},[]);
 
  async function uploadStudentList(file:File){
-  setUploadBusy(true);setMessage("");
+  setUploadBusy(true);setMessage("");setImportReport(null);
   try{
-   const body=new FormData();body.append("file",file);body.append("category","student-list");
-   const r=await fetch("/api/uploads",{method:"POST",body});
+   const body=new FormData();body.append("file",file);
+   const r=await fetch("/api/admin/students/import",{method:"POST",body});
    const d=await r.json();
-   if(!r.ok) throw new Error(d.error||"Unable to upload student list.");
-   setMessage("Student list uploaded successfully. Open Uploads to review the uploaded file.");
-  }catch(e){setMessage(e instanceof Error?e.message:"Unable to upload student list.");}
+   if(!r.ok) throw new Error(d.error||d.errors?.[0]||"Unable to import student list.");
+   setImportReport(d);
+   setMessage(`Student import complete: ${d.importedCount} added, ${d.skippedCount} skipped.`);
+   await load();
+  }catch(e){setMessage(e instanceof Error?e.message:"Unable to import student list.");}
   finally{setUploadBusy(false);}
  }
-
  async function createStudent(e:React.FormEvent){
   e.preventDefault();setBusy(true);setMessage("");
   try{
@@ -70,7 +71,8 @@ export default function AdminStudents(){
    <button className="secondaryBtn" onClick={load} disabled={loading}><RefreshCw size={14}/> Refresh</button>
    <span className="studentCount"><Users size={14}/> {students.length} students</span>
   </div>
-  {message&&<div className="loginError adminMessage">{message}</div>}{credentials&&<div className="card" style={{marginTop:12}}><div className="eyebrow">GENERATED STUDENT CREDENTIALS</div><p style={{margin:"8px 0"}}><b>Student ID:</b> {credentials.studentId}</p><p style={{margin:"8px 0"}}><b>Password:</b> {credentials.password}</p><small className="quickText">Save these credentials now. The password is stored only as a secure hash.</small></div>}
+  {message&&<div className="loginError adminMessage">{message}</div>}
+  {importReport&&<div className="card" style={{marginTop:12}}><div className="eyebrow">IMPORT RESULT</div><h3 style={{margin:"7px 0"}}>{importReport.importedCount} students added</h3>{importReport.skippedCount>0&&<p className="quickText">{importReport.skippedCount} rows skipped. {importReport.errors.slice(0,5).join(" ")}</p>}{importReport.students.length>0&&<details style={{marginTop:10}}><summary>View generated credentials</summary><div style={{marginTop:10,display:"grid",gap:6}}>{importReport.students.map((s:any)=><div key={s.enrollmentNo} className="quickText"><b>{s.name}</b> · {s.enrollmentNo} · password: <code>{s.password}</code></div>)}</div></details>}</div>}{credentials&&<div className="card" style={{marginTop:12}}><div className="eyebrow">GENERATED STUDENT CREDENTIALS</div><p style={{margin:"8px 0"}}><b>Student ID:</b> {credentials.studentId}</p><p style={{margin:"8px 0"}}><b>Password:</b> {credentials.password}</p><small className="quickText">Save these credentials now. The password is stored only as a secure hash.</small></div>}
   <div className="card studentAdminTable">
    <div className="studentAdminHead"><span>STUDENT</span><span>ENROLLMENT</span><span>CLASS</span><span>CONTACT</span><span>ACCOUNT</span></div>
    {loading?<div className="emptyState">Loading students…</div>:students.length===0?<div className="emptyState">No students found. Add the first student record.</div>:students.map(s=><div className="studentAdminRow" key={s.id}>
