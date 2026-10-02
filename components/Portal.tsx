@@ -18,6 +18,8 @@ import {
   ChevronRight, Sparkles
 } from "lucide-react";
 
+type Role="Admin"|"Super Admin"|"HOD"|"Faculty"|"Student"|"Parent";
+
 const data = {
   Admin:[
     "Overview","Student Management","Faculty Management","Admissions","Academic Structure","Subjects","Faculty-Subject Mapping",
@@ -50,7 +52,9 @@ const data = {
     "Overview","My Child","Attendance","Attendance Alerts","Timetable","Assignments","Study Material","Examinations","Hall Tickets",
     "Results","Fees","Leave Status","Notifications","Library","Hostel","Transport","Certificates","Helpdesk","Events","Settings"
   ]
-} as const;const groupsFor=(role:Role)=>{
+} as const;
+
+const groupsFor=(role:Role)=>{
   const items=data[role];
   const groups=[
     {label:"Dashboard",items:items.filter(x=>x==="Overview")},
