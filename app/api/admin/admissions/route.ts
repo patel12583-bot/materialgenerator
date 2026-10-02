@@ -170,6 +170,7 @@ export async function POST(req:Request) {
             },
             include:{student:true}
           });
+          if(!user.student) throw new Error("Student profile creation failed.");
           studentId=user.student.id;
         }
         const app=await tx.admissionApplication.update({
