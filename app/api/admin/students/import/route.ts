@@ -41,7 +41,7 @@ export async function POST(req:Request){
    if(!division){errors.push(`Row ${line}: class ${program} / Sem ${semester} / Div ${divisionName} was not found.`);continue;}
    if(!enrollment)enrollment=await generateStudentId(division.semester.program.code);
    if(existing.has(enrollment)){errors.push(`Row ${line}: enrollment ${enrollment} already exists.`);continue;}
-   const duplicateRoll=await prisma.student.findFirst({where:{divisionId:division.id,rollNo}});
+   const duplicateRoll=await prisma.student.findFirst({where:{divisionId:division.id,rollNo:roll}});
    if(duplicateRoll){errors.push(`Row ${line}: roll number ${roll} already exists in ${division.semester.program.code} / Sem ${division.semester.number} / Div ${division.name}.`);continue;}
    if(phone&&phone.length!==10){errors.push(`Row ${line}: invalid student mobile.`);continue;}
    if(parentPhone&&parentPhone.length!==10){errors.push(`Row ${line}: invalid parent mobile.`);continue;}
