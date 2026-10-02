@@ -4,6 +4,7 @@ import AdminWorkspace from "@/components/AdminWorkspace";
 import AdminStudents from "@/components/AdminStudents";
 import AdminAccounts from "@/components/AdminAccounts";
 import FacultyManagement from "@/components/FacultyManagement";
+import SubjectManagement from "@/components/SubjectManagement";
 import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import { useEffect, useMemo, useState } from "react";
@@ -152,7 +153,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Today's Lectures"&&role==="Faculty"?<FacultyToday lectures={lectures} currentTime={currentTime} onStart={startAttendance} busy={busy}/>
           :page==="Hall Tickets"&&role==="Student"?<HallTickets/>
           :page==="Examinations"&&role==="Student"?<Examinations/>
-          :page==="Uploads"?<UploadCenter role={role}/>
+          :page==="Subjects"&&role==="Admin"?<SubjectManagement/>\n          :page==="Uploads"?<UploadCenter role={role}/>
           :page==="Attendance"&&role==="Faculty"&&sessionId?<LiveAttendance records={records} setStatus={(id,s)=>setRecords(x=>x.map(r=>r.studentId===id?{...r,status:s}:r))} onSubmit={submit} busy={busy} message={message}/>
           :modulePage?<WorkspaceModule role={role} page={page}/>
           :<div className="card emptyState"><h2>Nothing to show yet</h2><p>This workspace is ready for your institution's data.</p></div>}
