@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, RefreshCw, Search, Upload, Users, UserPlus, Pencil, UserX, CheckCircle2 } from "lucide-react";
+import { Plus, RefreshCw, Search, Upload, Users, UserPlus, Pencil, UserX, CheckCircle2, Download } from "lucide-react";
 
 type Division={id:string;name:string;semester:{number:number;program:{name:string;code:string}}};
 type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{id:string;active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
@@ -42,6 +42,13 @@ export default function AdminStudents(){
   }catch(e){setMessage(e instanceof Error?e.message:"Unable to import student list.");}
   finally{setUploadBusy(false);}
  }
+ function downloadCredentials(){
+  if(!importReport?.students?.length)return;
+  const header="Name,Enrollment,Roll,Program,Semester,Division,Password";
+  const lines=importReport.students.map((s:any)=>[s.name,s.enrollmentNo,s.rollNo,s.program,s.semester,s.division,s.password].map((v:any)=>'"'+String(v??"").replace(/"/g,'""')+'"').join(","));
+  const blob=new Blob([[header,...lines].join("\\n")],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="student-login-credentials.csv";a.click();URL.revokeObjectURL(url);
+}
  async function saveEdit(e:React.FormEvent){
   e.preventDefault(); if(!editing)return; setBusy(true);setMessage("");
   try{
@@ -75,7 +82,7 @@ export default function AdminStudents(){
    <div style={{display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}}>
     <label className="secondaryBtn" style={{cursor:uploadBusy?"wait":"pointer",opacity:uploadBusy?0.65:1}}>
      <Upload size={15}/>{uploadBusy?"Uploading…":"Upload students"}
-     <input type="file" accept=".csv,.xlsx,.xls,.pdf,.doc,.docx" hidden disabled={uploadBusy} onChange={e=>{const file=e.target.files?.[0];if(file)uploadStudentList(file);e.currentTarget.value=""}}/>
+     <input type="file" accept=".csv,.xlsx,.xls" hidden disabled={uploadBusy} onChange={e=>{const file=e.target.files?.[0];if(file)uploadStudentList(file);e.currentTarget.value=""}}/>
     </label>
     <button className="primary" onClick={()=>setOpen(true)}><UserPlus size={15}/> Add student</button>
    </div>
@@ -86,7 +93,7 @@ export default function AdminStudents(){
    <span className="studentCount"><Users size={14}/> {students.length} students</span>
   </div>
   {message&&<div className="loginError adminMessage">{message}</div>}
-  {importReport&&<div className="card" style={{marginTop:12}}><div className="eyebrow">IMPORT RESULT</div><h3 style={{margin:"7px 0"}}>{importReport.importedCount} students added</h3>{importReport.skippedCount>0&&<p className="quickText">{importReport.skippedCount} rows skipped. {importReport.errors.slice(0,5).join(" ")}</p>}{importReport.students.length>0&&<details style={{marginTop:10}}><summary>View generated credentials</summary><div style={{marginTop:10,display:"grid",gap:6}}>{importReport.students.map((s:any)=><div key={s.enrollmentNo} className="quickText"><b>{s.name}</b> · {s.enrollmentNo} · password: <code>{s.password}</code></div>)}</div></details>}</div>}{credentials&&<div className="card" style={{marginTop:12}}><div className="eyebrow">GENERATED STUDENT CREDENTIALS</div><p style={{margin:"8px 0"}}><b>Student ID:</b> {credentials.studentId}</p><p style={{margin:"8px 0"}}><b>Password:</b> {credentials.password}</p><small className="quickText">Save these credentials now. The password is stored only as a secure hash.</small></div>}
+  {importReport&&<div className="card" style={{marginTop:12}}><div className="eyebrow">IMPORT RESULT</div><h3 style={{margin:"7px 0"}}>{importReport.importedCount} students added</h3>{importReport.skippedCount>0&&<p className="quickText">{importReport.skippedCount} rows skipped. {importReport.errors.slice(0,5).join(" ")}</p>}{importReport.students.length>0&&<details style={{marginTop:10}}><summary>View generated credentials</summary><button type="button" className="secondaryBtn" style={{marginTop:8}} onClick={downloadCredentials}><Download size={14}/> Download credentials CSV</button><div style={{marginTop:10,display:"grid",gap:6}}>{importReport.students.map((s:any)=><div key={s.enrollmentNo} className="quickText"><b>{s.name}</b> · {s.enrollmentNo} · password: <code>{s.password}</code></div>)}</div></details>}</div>}{credentials&&<div className="card" style={{marginTop:12}}><div className="eyebrow">GENERATED STUDENT CREDENTIALS</div><p style={{margin:"8px 0"}}><b>Student ID:</b> {credentials.studentId}</p><p style={{margin:"8px 0"}}><b>Password:</b> {credentials.password}</p><small className="quickText">Save these credentials now. The password is stored only as a secure hash.</small></div>}
   <div className="card studentAdminTable">
    <div className="studentAdminHead"><span>STUDENT</span><span>ENROLLMENT</span><span>CLASS</span><span>CONTACT</span><span>ACCOUNT</span></div>
    {loading?<div className="emptyState">Loading students…</div>:students.length===0?<div className="emptyState">No students found. Add the first student record.</div>:students.map(s=><div className="studentAdminRow" key={s.id}>
