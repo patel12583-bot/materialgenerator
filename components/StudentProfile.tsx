@@ -151,7 +151,7 @@ export default function StudentProfile({studentId,editable=true}:Props){
        <div><b>{d.name}</b><small>{d.type} · {new Date(d.uploadedAt).toLocaleDateString()}</small></div>
        <span className={d.verified?"status present":"status pending"}>{d.verified?"VERIFIED":"PENDING"}</span>
        <a href={"/api/student/documents?documentId="+encodeURIComponent(d.id)} target="_blank" rel="noreferrer"><FileCheck2 size={14}/> Open</a>
-       {staffView&&<button className="textBtn" disabled={verifying===d.id} onClick={()=>verifyDocument(d.id,!d.verified)}>{verifying===d.id?<Loader2 size={13} className="spin">:d.verified?"Unverify":"Verify"}</button>}
+       {staffView&&<button className="textBtn" disabled={verifying===d.id} onClick={()=>verifyDocument(d.id,!d.verified)}>{verifying===d.id?<Loader2 size={13} className="spin"/>:d.verified?"Unverify":"Verify"}</button>}
       </div>
     )}</div>}
    </section>
