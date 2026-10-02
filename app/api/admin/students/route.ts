@@ -106,12 +106,31 @@ export async function PATCH(req:Request){
     if(!division)return NextResponse.json({error:"Division not found."},{status:404});
     const duplicate=await prisma.student.findFirst({where:{id:{not:studentId},divisionId,rollNo}});
     if(duplicate)return NextResponse.json({error:"Another student already uses this roll number in the selected division."},{status:409});
-    const updated=await prisma.$transaction([
-      prisma.student.update({where:{id:studentId},data:{name,rollNo,divisionId,phone:phone||null,parentPhone:parentPhone||null}}),
-      prisma.user.update({where:{id:existing.userId},data:{email,phone:phone||null}})
-    ]);
-    return NextResponse.json({student:updated[0]});
+    const updated=await prisma.$transaction(async tx=>{
+      const student=await tx.student.update({where:{id:studentId},data:{name,rollNo,divisionId,phone:phone||null,parentPhone:parentPhone||null,status}});
+      await tx.user.update({where:{id:existing.userId},data:{email,phone:phone||null,active:status==="ACTIVE"}});
+      await tx.auditLog.create({data:{actorId:session.userId,action:"UPDATE",entity:"Student",entityId:student.id,reason:"Student master record updated",before:JSON.parse(JSON.stringify(existing)),after:JSON.parse(JSON.stringify(student))}});
+      return student;
+    });
+    return NextResponse.json({student:updated});
   }catch(error){return NextResponse.json({error:"Unable to update student."},{status:500});}
+}
+
+export async function PUT(req:Request){
+  const session=await getCurrentUser(); if(!session||!allowed(session.role))return NextResponse.json({error:"Unauthorized"},{status:401});
+  try{
+    const studentId=String(new URL(req.url).searchParams.get("studentId")||"");
+    if(!studentId)return NextResponse.json({error:"Student ID is required."},{status:400});
+    const existing=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},include:{user:true}});
+    if(!existing)return NextResponse.json({error:"Student not found."},{status:404});
+    const student=await prisma.$transaction(async tx=>{
+      const s=await tx.student.update({where:{id:studentId},data:{status:"ACTIVE"}});
+      await tx.user.update({where:{id:existing.userId},data:{active:true}});
+      await tx.auditLog.create({data:{actorId:session.userId,action:"ACTIVATE",entity:"Student",entityId:studentId,reason:"Student account reactivated",before:JSON.parse(JSON.stringify(existing)),after:JSON.parse(JSON.stringify(student))}});
+      return s;
+    });
+    return NextResponse.json({student,message:"Student account reactivated."});
+  }catch(error){return NextResponse.json({error:"Unable to reactivate student."},{status:500});}
 }
 
 export async function DELETE(req:Request){
@@ -119,9 +138,13 @@ export async function DELETE(req:Request){
   try{
     const studentId=String(new URL(req.url).searchParams.get("studentId")||"");
     if(!studentId)return NextResponse.json({error:"Student ID is required."},{status:400});
-    const student=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},select:{userId:true}});
-    if(!student)return NextResponse.json({error:"Student not found."},{status:404});
-    await prisma.user.update({where:{id:student.userId},data:{active:false}});
+    const existing=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},include:{user:true}});
+    if(!existing)return NextResponse.json({error:"Student not found."},{status:404});
+    await prisma.$transaction(async tx=>{
+      await tx.student.update({where:{id:studentId},data:{status:"INACTIVE"}});
+      await tx.user.update({where:{id:existing.userId},data:{active:false}});
+      await tx.auditLog.create({data:{actorId:session.userId,action:"DEACTIVATE",entity:"Student",entityId:studentId,reason:"Student account deactivated",before:JSON.parse(JSON.stringify(existing)),after:{...JSON.parse(JSON.stringify(existing)),status:"INACTIVE"}}});
+    });
     return NextResponse.json({ok:true,message:"Student account deactivated."});
   }catch(error){return NextResponse.json({error:"Unable to deactivate student."},{status:500});}
 }
