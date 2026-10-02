@@ -50,7 +50,7 @@ const groupsFor=(role:Role)=>{
   const items=data[role];
   const groups=[
     {label:"Dashboard",items:items.filter(x=>x==="Overview")},
-    {label:"People & Academics",items:items.filter(x=>["Student Management","Faculty Management","Students","Faculty","HODs","Administrators","Users","Roles & Permissions","Department Overview","Departments","Programs","Academic Structure","Subjects","My Classes","My Subjects","My Courses","Faculty-Subject Mapping","Profile","My Profile","My Child"].includes(x))},
+    {label:"People & Academics",items:items.filter(x=>["Student Management","Faculty Management","Students","Faculty","HODs","Admissions","Administrators","Users","Roles & Permissions","Department Overview","Departments","Programs","Academic Structure","Subjects","My Classes","My Subjects","My Courses","Faculty-Subject Mapping","Profile","My Profile","My Child"].includes(x))},
     {label:"Academic Operations",items:items.filter(x=>["Master Timetable","Timetable","Today's Lectures","Attendance","My Attendance","Attendance Monitor","Attendance Correction","Attendance Reports","Attendance Alerts","Assignments","Study Material","Study Material Upload","AI Study Generator","AI Tutor","Question Bank","PYQ Bank","Notes","Exams","Examinations","Hall Tickets","Marks Entry","Results","Result Monitoring","Faculty Workload","Defaulters","Leave Approvals","Leave Requests","Leave Status","Substitute Faculty"].includes(x))},
     {label:"Campus Services",items:items.filter(x=>["Fees","Fees & Accounts","Scholarship","Library","Hostel","Transport","Placement","Internship","Events","Certificates","Documents","ID Cards","Helpdesk","Notifications","Department Notifications","Student Requests","SMS / Email / WhatsApp","Integration Configuration"].includes(x))},
     {label:"Governance & Intelligence",items:items.filter(x=>["Reports","Reports & Analytics","Audit","Audit Logs","System Settings","Security","Database / System Health","Notification Configuration","Backup / Export","Access Control","Settings","Uploads"].includes(x))}
@@ -154,6 +154,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Students"&&role==="Admin"?<AdminStudents/>
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
           :page==="HODs"&&role==="Admin"?<HODManagement/>
+          :page==="Admissions"&&(role==="Admin"||role==="Super Admin")?<AdmissionManagement/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
           :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
           :page==="Faculty-Subject Mapping"&&(role==="Admin"||role==="HOD")?<FacultySubjectMapping/>
