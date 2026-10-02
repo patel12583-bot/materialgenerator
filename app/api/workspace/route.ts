@@ -244,8 +244,8 @@ export async function POST(req: Request) {
 
   try {
     if(action==="create-subject" && adminRoles.includes(session.role)) {
-      const department=await prisma.department.findFirst({where:{id:String(body.departmentId),institutionId:session.institutionId}});
-      const semester=await prisma.semester.findFirst({where:{id:String(body.semesterId),program:{department:{institutionId:session.institutionId}}}});
+      const semester=await prisma.semester.findFirst({where:{id:String(body.semesterId),program:{department:{institutionId:session.institutionId}}},include:{program:true}});
+      const department=semester ? await prisma.department.findFirst({where:{id:semester.program.departmentId,institutionId:session.institutionId}}) : null;
       if(!department||!semester) return NextResponse.json({error:"Invalid department or semester."},{status:400});
       const code = String(body.code || "").trim().toUpperCase(); const name = String(body.name || "").trim(); const credits = Number(body.credits);
       if(!code || !name || !Number.isInteger(credits) || credits < 0 || credits > 10) return NextResponse.json({error:"Valid subject code, name and credits are required."},{status:400});
