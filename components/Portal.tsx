@@ -152,6 +152,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Departments"&&role==="Admin"?<AcademicStructure/>
           :page==="Students"&&role==="Admin"?<AdminStudents/>
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
+          :page==="HODs"&&role==="Admin"?<HODManagement/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
           :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
           :page==="Faculty-Subject Mapping"&&(role==="Admin"||role==="HOD")?<FacultySubjectMapping/>
