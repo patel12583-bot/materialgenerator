@@ -68,15 +68,42 @@ export async function PATCH(req:Request){
 
 export async function POST(req:Request){
   const session=await getCurrentUser();
-  if(!session||!staff.has(session.role)) return NextResponse.json({error:"Only administration can add student documents."},{status:403});
+  if(!session) return NextResponse.json({error:"Unauthorized"},{status:401});
   const body=await req.json();
-  const studentId=String(body.studentId||"");
+  const action=String(body.action||"create").trim();
+  const requestedId=String(body.studentId||"").trim();
+
+  if(action==="verify"){
+    if(!staff.has(session.role)) return NextResponse.json({error:"Only administration can verify documents."},{status:403});
+    const documentId=String(body.documentId||"").trim();
+    if(!documentId) return NextResponse.json({error:"Document ID is required."},{status:400});
+    const document=await prisma.studentDocument.findUnique({
+      where:{id:documentId},
+      include:{student:{include:{division:{include:{semester:{include:{program:{include:{department:true}}}}}}}}}
+    });
+    if(!document || document.student.division.semester.program.department.institutionId!==session.institutionId)
+      return NextResponse.json({error:"Document not found."},{status:404});
+    const verified=body.verified===false?false:true;
+    const updated=await prisma.$transaction(async tx=>{
+      const d=await tx.studentDocument.update({where:{id:documentId},data:{verified}});
+      await tx.auditLog.create({data:{actorId:session.userId,action:verified?"VERIFY":"UNVERIFY",entity:"StudentDocument",entityId:d.id,reason:verified?"Document verified by administration":"Document verification revoked"}});
+      return d;
+    });
+    return NextResponse.json({document:updated,message:verified?"Document verified successfully.":"Document moved back to pending."});
+  }
+
+  const isStudent=session.role==="STUDENT";
+  if(!isStudent&&!staff.has(session.role)) return NextResponse.json({error:"You do not have permission to manage student documents."},{status:403});
+  const studentId=isStudent
+    ? (await prisma.student.findUnique({where:{userId:session.userId},select:{id:true}}))?.id
+    : requestedId;
   const type=String(body.type||"").trim();
   const name=String(body.name||"").trim();
-  const fileUrl=String(body.fileUrl||"").trim()||null;
-  if(!studentId||!type||!name) return NextResponse.json({error:"Student, document type and document name are required."},{status:400});
+  const fileUrl=String(body.fileUrl||"").trim();
+  if(!studentId||!type||!name||!fileUrl) return NextResponse.json({error:"Student, document type, document name and uploaded file are required."},{status:400});
   const student=await scopedStudent(session,studentId);
   if(!student) return NextResponse.json({error:"Student not found."},{status:404});
-  const doc=await prisma.studentDocument.create({data:{studentId,type,name,fileUrl}});
-  return NextResponse.json({document:doc,message:"Document added successfully."},{status:201});
+  const doc=await prisma.studentDocument.create({data:{studentId,type,name,fileUrl,verified:staff.has(session.role)}});
+  await prisma.auditLog.create({data:{actorId:session.userId,action:"UPLOAD",entity:"StudentDocument",entityId:doc.id,reason:staff.has(session.role)?"Document uploaded by administration":"Document uploaded by student"}});
+  return NextResponse.json({document:doc,message:staff.has(session.role)?"Document uploaded and verified.":"Document uploaded and queued for verification."},{status:201});
 }
