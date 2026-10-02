@@ -112,16 +112,5 @@ export default function AdminStudents(){
     <button className="primary fullBtn" disabled={busy}>{busy?(editing?"Saving…":"Creating…"):(editing?"Save changes":"Create student")} {editing?<CheckCircle2 size={14}/>:<Plus size={14}/>}</button>
    </form>
   </div></div>}
-  {false&& onMouseDown={()=>setOpen(false)}><div className="modalCard" onMouseDown={e=>e.stopPropagation()}>
-   <div className="cardHead"><div><span className="eyebrow">NEW STUDENT</span><h2>Create student record</h2></div><button type="button" className="iconBtn" onClick={()=>setOpen(false)}>×</button></div>
-   <form className="adminForm" onSubmit={createStudent}>
-    <label>Full name</label><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Student full name"/>
-    <div className="formTwo"><div><label>Enrollment number <span style={{fontWeight:400,color:"#98a2b3"}}>(optional — auto-generated if blank)</span></label><input value={form.enrollmentNo} onChange={e=>setForm({...form,enrollmentNo:e.target.value})} placeholder="NOBLE-BCA-002"/></div><div><label>Roll number</label><input required value={form.rollNo} onChange={e=>setForm({...form,rollNo:e.target.value})} placeholder="2"/></div></div>
-    <label>Division</label><select required value={form.divisionId} onChange={e=>setForm({...form,divisionId:e.target.value})}><option value="">Select division</option>{divisions.map(d=><option key={d.id} value={d.id}>{d.semester.program.code} · Sem {d.semester.number} · Div {d.name}</option>)}</select>
-    <div className="formTwo"><div><label>Student mobile</label><input inputMode="numeric" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="10-digit mobile"/></div><div><label>Parent mobile</label><input inputMode="numeric" value={form.parentPhone} onChange={e=>setForm({...form,parentPhone:e.target.value})} placeholder="10-digit mobile"/></div></div>
-    <label>Email (optional)</label><input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="student@example.com"/>
-    <button className="primary fullBtn" disabled={busy}>{busy?"Creating…":"Create student"}<Plus size={14}/></button>
-   </form>
-  </div></div>}
  </div>;
 }
