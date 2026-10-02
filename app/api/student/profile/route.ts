@@ -60,7 +60,7 @@ export async function PATCH(req:Request){
   const updated=await prisma.$transaction(async tx=>{
     const s=await tx.student.update({where:{id:studentId},data,include:{documents:true}});
     await tx.user.update({where:{id:s.userId},data:{phone:s.phone}});
-    await tx.auditLog.create({data:{actorId:session.userId,action:"UPDATE",entity:"Student",entityId:s.id,reason:"Profile updated",before:existing as any,after:s as any}});
+    await tx.auditLog.create({data:{actorId:session.userId,action:"UPDATE",entity:"Student",entityId:s.id,reason:"Profile updated",before:JSON.parse(JSON.stringify(existing)),after:JSON.parse(JSON.stringify(s))}});
     return s;
   });
   return NextResponse.json({student:updated,message:"Student profile updated successfully."});
