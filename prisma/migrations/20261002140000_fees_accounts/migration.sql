@@ -48,7 +48,7 @@ CREATE TABLE "FeePayment" (
   CONSTRAINT "FeePayment_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "FeeStructure_institutionId_academicYear_active_idx" ON "FeeStructure"("institutionId","academicYear","active");
+CREATE INDEX "FeeStructure_institutionId_academicYear_active_idx" ON "FeeStructure"("institutionId","academicYear","active");
 CREATE INDEX "FeeStructure_programId_semesterId_idx" ON "FeeStructure"("programId","semesterId");
 CREATE UNIQUE INDEX "StudentFee_studentId_feeStructureId_key" ON "StudentFee"("studentId","feeStructureId");
 CREATE INDEX "StudentFee_studentId_status_idx" ON "StudentFee"("studentId","status");
