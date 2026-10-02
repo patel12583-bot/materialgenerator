@@ -12,6 +12,7 @@ import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import HODManagement from "@/components/HODManagement";
 import AdmissionManagement from "@/components/AdmissionManagement";
+import FeeManagement from "@/components/FeeManagement";
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity, BarChart3, Bell, BookOpen, CalendarDays, Check, CheckCircle2,
@@ -156,6 +157,8 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
           :page==="HODs"&&role==="Admin"?<HODManagement/>
           :page==="Admissions"&&(role==="Admin"||role==="Super Admin")?<AdmissionManagement/>
+          :page==="Fees & Accounts"&&role==="Admin"?<FeeManagement role={role}/>
+          :page==="Fees"&&(role==="Student"||role==="Parent")?<FeeManagement role={role}/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
           :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
           :page==="Faculty-Subject Mapping"&&(role==="Admin"||role==="HOD")?<FacultySubjectMapping/>
