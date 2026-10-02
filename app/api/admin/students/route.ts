@@ -99,9 +99,12 @@ export async function PATCH(req:Request){
     if(!existing)return NextResponse.json({error:"Student not found."},{status:404});
     const name=String(body.name||"").trim(), rollNo=String(body.rollNo||"").trim(), divisionId=String(body.divisionId||existing.divisionId);
     const phone=String(body.phone||"").replace(/\D/g,""), parentPhone=String(body.parentPhone||"").replace(/\D/g,""), email=String(body.email||"").trim()||null;
+    const allowedStatuses=["ACTIVE","INACTIVE","ALUMNI","TRANSFERRED","SUSPENDED","GRADUATED"] as const;
+    const status=String(body.status||existing.status) as typeof allowedStatuses[number];
     if(!name||!rollNo||!divisionId)return NextResponse.json({error:"Name, roll number and division are required."},{status:400});
     if(phone&&phone.length!==10)return NextResponse.json({error:"Student mobile must be 10 digits."},{status:400});
     if(parentPhone&&parentPhone.length!==10)return NextResponse.json({error:"Parent mobile must be 10 digits."},{status:400});
+    if(!allowedStatuses.includes(status)) return NextResponse.json({error:"Invalid student status."},{status:400});
     const division=await prisma.division.findFirst({where:{id:divisionId,semester:{program:{department:{institutionId:session.institutionId}}}}});
     if(!division)return NextResponse.json({error:"Division not found."},{status:404});
     const duplicate=await prisma.student.findFirst({where:{id:{not:studentId},divisionId,rollNo}});
