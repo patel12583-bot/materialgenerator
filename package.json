@@ -21,7 +21,8 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "@vercel/blob": "latest"
+    "@vercel/blob": "latest",
+    "xlsx": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
