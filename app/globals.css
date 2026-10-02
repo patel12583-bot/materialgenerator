@@ -125,3 +125,79 @@ body{background:#f4f7fb;color:var(--ink)}
 .modalBackdrop{position:fixed;inset:0;background:rgba(7,26,56,.38);backdrop-filter:blur(7px);z-index:100;display:grid;place-items:center;padding:20px}.modalCard{width:min(480px,100%);background:#fff;border:1px solid #dfe7f2;border-radius:22px;padding:20px;box-shadow:0 30px 100px rgba(5,24,55,.22)}.modalHead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.modalHead h2{font:800 22px Manrope;margin:6px 0 0}.modalCard label{display:block;font-size:10px;font-weight:800;color:#596579;margin:11px 0}.modalCard input{width:100%;margin-top:6px;border:1px solid #dfe5ed;border-radius:10px;padding:11px;outline:0}.modalActions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.secondary{border:0;background:#f0f3f7;color:#536074;border-radius:10px;padding:10px 13px;font-size:10px;font-weight:800}
 @media(max-width:900px){.miniStats{grid-template-columns:repeat(2,1fr)}.ttLayout{grid-template-columns:1fr}.ttEditor{order:2}.ttEntry{grid-template-columns:90px 1fr}.ttEntry>div:nth-child(3){grid-column:2}.ttActions{grid-column:2}}
 @media(max-width:600px){.studentToolbar{flex-wrap:wrap}.adminSearch{flex-basis:100%}.miniStats{grid-template-columns:1fr 1fr}.ttToolbar{align-items:flex-start;flex-direction:column}.ttSummary{padding:0 4px}.ttEntry{grid-template-columns:1fr}.ttEntry>div:nth-child(3),.ttActions{grid-column:auto}.semesterGrid{grid-template-columns:1fr}}
+
+
+/* ─────────────────────────────────────────────────────────────
+   NOBLE UNIVERSITY UI SYSTEM · v3
+   Institutional / university-grade visual language
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --uni-ink:#0b1f3a;--uni-blue:#174ea6;--uni-blue2:#0f3d82;--uni-sky:#edf5ff;
+  --uni-gold:#b88a2a;--uni-paper:#f7f9fc;--uni-border:#dfe6ef;
+  --uni-shadow:0 14px 45px rgba(13,35,67,.07);
+}
+body{background:var(--uni-paper);color:var(--uni-ink)}
+.portalShell{background:#f5f7fa}
+.portalSide{width:286px;background:#fff;border-right:1px solid #dbe3ec;box-shadow:8px 0 32px rgba(16,39,72,.035)}
+.portalMain{margin-left:286px;width:calc(100% - 286px)}
+.sidebarCollapsed~.portalMain{margin-left:88px;width:calc(100% - 88px)}
+.companySide{padding:18px 15px 14px}
+.companyBrand{padding:5px 9px 20px;border-bottom:1px solid #edf0f4;margin-bottom:15px}
+.brandMark,.authLogo,.corpLogo{border-radius:10px}
+.brandCopy b{font-size:15px;letter-spacing:-.02em;color:#102b4c}
+.brandCopy span{font-size:8px;letter-spacing:.14em;color:#8b6b2a}
+.workspaceIdentity{background:linear-gradient(135deg,#f8fbff,#f5f8fc);border-color:#dce5f0;border-radius:12px;padding:12px}
+.workspaceAvatar{background:var(--uni-ink);border-radius:9px}
+.navGroup{margin-bottom:15px}
+.navGroupLabel{font-size:8px;color:#8b97a8;letter-spacing:.16em;padding-left:10px}
+.navItem{border-radius:9px;padding:8px 10px;color:#536174;font-size:11px}
+.navItem:hover{background:#f4f7fb;color:#17385f}
+.navItem.active{background:#eaf2ff;color:#124a9d;font-weight:750;box-shadow:inset 3px 0 0 #174ea6}
+.navItem.active i{display:none}
+.companySideBottom{padding-top:10px}
+.secureMini{background:#f6faf8;border-color:#dcece3}
+.portalTop{height:68px;background:rgba(255,255,255,.94);border-bottom-color:#dfe6ef;padding:0 30px}
+.crumb{font-size:10px;color:#8793a4}.crumb strong{color:#203b5c}
+.topStatus{font-size:9px}
+.companyContent{max-width:1540px;padding:28px 36px 56px}
+.dashboardHero{
+  min-height:210px;padding:34px 36px;border-radius:18px;
+  background:linear-gradient(115deg,#fff 0%,#f7faff 62%,#edf4ff 100%);
+  border:1px solid #d9e3ef;box-shadow:var(--uni-shadow);position:relative;overflow:hidden
+}
+.dashboardHero:after{content:"";position:absolute;right:-110px;top:-150px;width:390px;height:390px;border:1px solid #dbe7f5;border-radius:50%;box-shadow:0 0 0 45px rgba(226,237,252,.35),0 0 0 90px rgba(235,243,252,.35)}
+.dashboardHero h1{font-size:37px;color:#0c2748}
+.dashboardHero h1 em{color:#174ea6}
+.dashboardHero p{max-width:680px}
+.heroPulse{position:relative;z-index:2;min-width:215px;border-color:#dbe4ef}
+.portalStats{grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}
+.metric{border-radius:13px;min-height:105px;padding:16px;border-color:#dfe6ef;box-shadow:0 5px 18px rgba(20,45,80,.025)}
+.metric b{font-size:25px;color:#0d2b4e}
+.card{border-radius:14px;border-color:#dfe6ef;box-shadow:0 8px 28px rgba(15,36,67,.035)}
+.cardHead{padding:16px 18px}
+.cardHead h2{font-size:16px;color:#153554}
+.pageHead{margin-bottom:20px}.pageHead h1{font-size:32px;color:#0b294b}
+.pageHead h1 em{color:#174ea6}
+.quickCard{border-radius:12px;border-color:#dfe6ef;transition:transform .18s,box-shadow .18s,border-color .18s}
+.quickCard:hover{border-color:#b9cce5;box-shadow:0 10px 30px rgba(18,58,105,.07);transform:translateY(-2px)}
+.quickIcon{background:#edf4ff;color:#174ea6}
+.primary{background:#174ea6;border-radius:9px;box-shadow:0 6px 16px rgba(23,78,166,.16)}
+.primary:hover{background:#0f3d82}
+.secondaryBtn{border:1px solid #d8e0ea;background:#fff;border-radius:9px}
+.studentAdminHead,.tableHead{background:#f5f8fb;color:#7f8b9d;border-bottom:1px solid #e4e9ef}
+.studentAdminRow,.tableRow{border-top-color:#edf0f4}
+.studentAdminRow:hover,.tableRow:hover{background:#fbfdff}
+.authPage{background:#f4f7fb}
+.authVisual{background:linear-gradient(145deg,#071a34,#103b72);position:relative}
+.authVisual:before{content:"";position:absolute;left:0;right:0;bottom:0;height:220px;background:linear-gradient(transparent,rgba(4,18,38,.45))}
+.authPanel{background:#f5f7fa}
+.authBox{border-radius:18px;border-color:#dbe4ee;box-shadow:0 25px 80px rgba(12,34,65,.09)}
+.authSubmit{background:#174ea6}.authSubmit:hover{background:#0f3d82}
+.corpHero{background:linear-gradient(135deg,#06172f,#103e78)}
+.corpHero:after{border-color:rgba(192,215,245,.13)}
+.corpSection{padding:88px 7vw}
+.productCard,.corpPortal{border-radius:14px;border-color:#dfe6ef}
+.corpFooter{background:#081b35!important}
+@media(max-width:1180px){.portalStats{grid-template-columns:repeat(3,1fr)}.portalSide{width:250px}.portalMain{margin-left:250px;width:calc(100% - 250px)}.companyContent{padding:25px}}
+@media(max-width:760px){.portalSide{width:286px;transform:translateX(-100%);box-shadow:20px 0 50px rgba(0,0,0,.12)}.portalSide.open{transform:translateX(0)}.portalMain,.sidebarCollapsed~.portalMain{margin-left:0;width:100%}.mobileOnly{display:grid}.desktopToggle{display:none}.companyContent{padding:20px 15px 40px}.portalTop{padding:0 15px}.portalStats{grid-template-columns:repeat(2,1fr)}.dashboardHero{padding:24px 22px;display:block}.heroPulse{margin-top:20px}.quickGrid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.portalStats{grid-template-columns:1fr 1fr}.pageHead h1{font-size:28px}.quickGrid{grid-template-columns:1fr}.dashboardHero h1{font-size:30px}}
