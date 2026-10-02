@@ -18,3 +18,84 @@
 .modalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(5px);display:grid;place-items:center;padding:20px;z-index:100}.modalCard{width:min(520px,100%);background:#fff;border-radius:20px;padding:22px;box-shadow:0 30px 80px rgba(15,23,42,.22)}.modalHead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.modalHead h2{margin:3px 0 0;font-size:22px;text-transform:capitalize}.modalCard label{display:grid;gap:7px;font-size:12px;font-weight:700;color:#475569;margin:12px 0}.modalCard input{height:44px;border:1px solid #dce4ee;border-radius:10px;padding:0 12px;outline:none;font:inherit;background:#fff}.modalCard input:focus{border-color:#7aa7e8;box-shadow:0 0 0 3px rgba(37,99,235,.09)}.modalActions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.secondary{border:1px solid #dbe4ef;background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
 @media(max-width:900px){.miniStats{grid-template-columns:repeat(2,minmax(0,1fr))}.semesterGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.miniStats{grid-template-columns:1fr 1fr}.semesterGrid{grid-template-columns:1fr}.structureHeader{padding:14px}}
+
+
+/* Noble Digital Campus — premium v2 visual system */
+:root{
+ --ink:#0a1630;--muted:#66758b;--line:#dfe7f2;--soft:#f5f8fc;
+ --blue:#1455d9;--blue2:#083b9f;--blueSoft:#eaf2ff;--navy:#071a38;
+ --shadow:0 20px 70px rgba(20,47,91,.08);
+}
+body{background:#f4f7fb;color:var(--ink)}
+.card{border-radius:20px;box-shadow:0 10px 40px rgba(20,47,91,.045);border-color:#e2e9f3}
+.companyShell{background:#f4f7fb}
+.portalSide{background:rgba(255,255,255,.96);box-shadow:8px 0 35px rgba(15,38,75,.035);border-right:1px solid #e2e9f3}
+.companyBrand{padding:22px 14px 22px}
+.brandMark,.authLogo,.corpLogo{border-radius:12px;box-shadow:0 7px 18px rgba(20,85,217,.13)}
+.workspaceIdentity{background:linear-gradient(135deg,#f8fbff,#f1f6ff);border-color:#dce7f7}
+.navItem{border-radius:11px;padding:10px 11px}
+.navItem.active{background:linear-gradient(90deg,#eaf2ff,#f3f7ff);box-shadow:inset 0 0 0 1px #dce8fa;color:#0b4abf}
+.navItem.active i{right:5px;width:3px;height:20px}
+.portalTop{height:68px;border-bottom-color:#e2e9f3}
+.companyContent{padding:36px 38px 60px;max-width:1540px}
+.dashboardHero{position:relative;overflow:hidden;padding:36px;border-radius:26px;background:radial-gradient(circle at 85% 20%,#e8f1ff 0,#f7faff 26%,#fff 70%);border-color:#dbe6f5;box-shadow:0 24px 70px rgba(20,67,145,.09)}
+.dashboardHero:after{content:"";position:absolute;width:260px;height:260px;border:1px solid #d7e4f8;border-radius:50%;right:-80px;bottom:-150px}
+.dashboardHero h1{font-size:42px}
+.heroPulse{position:relative;z-index:1;min-width:220px;border-radius:17px;border-color:#dce7f5}
+.portalStats{gap:14px}
+.metric{border-radius:18px;min-height:122px;padding:19px;background:linear-gradient(180deg,#fff,#fbfcfe)}
+.metric b{font-size:30px}
+.quickCard{border-radius:17px;padding:17px;border-color:#e0e7f1;transition:.2s ease}
+.quickCard:hover{box-shadow:0 12px 30px rgba(20,60,120,.08);transform:translateY(-2px)}
+.systemStrip{border-radius:18px;background:linear-gradient(100deg,#081d40,#103a79);box-shadow:0 16px 35px rgba(8,29,64,.14)}
+.primary{background:linear-gradient(135deg,#1b62eb,#1049bc);border-radius:11px}
+.pageHead h1{font-size:36px}
+.adminStructureGrid{grid-template-columns:380px 1fr}
+.lectureCard{border-radius:19px;padding:20px;border-color:#e0e7f1}
+.lectureCard:hover{box-shadow:0 14px 38px rgba(20,47,91,.07)}
+.emptyState{border-radius:20px}
+.authPage{background:#f3f6fb}
+.authVisual{background:linear-gradient(145deg,#061b3c 0%,#0a2e66 54%,#0e55b9 100%);position:relative;overflow:hidden}
+.authVisual:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 75% 22%,rgba(86,153,255,.28),transparent 32%),radial-gradient(circle at 18% 80%,rgba(57,114,214,.22),transparent 35%)}
+.authVisual:after{content:"";position:absolute;width:520px;height:520px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-230px;bottom:-270px}
+.authVisualInner{position:relative;z-index:2}
+.authBrand{color:#fff}
+.authBrand .authLogo{background:#fff}
+.authBrand span:last-child b{font-size:18px}
+.authMessage h1{font-size:54px;letter-spacing:-.055em}
+.authMessage p{color:#c8d7ee;max-width:500px}
+.authFeature{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);backdrop-filter:blur(12px);border-radius:15px;padding:14px}
+.authPanel{background:#fff}
+.authBox{max-width:560px}
+.authRoleGrid{gap:8px}
+.authRole{border-radius:13px;border-color:#e0e6ef;background:#fbfcfe;padding:11px}
+.authRole.active{background:#edf4ff;border-color:#8db1ee;box-shadow:0 0 0 3px #f1f6ff}
+.authInput input{padding:13px;border-radius:12px}
+.authSubmit{border-radius:12px;background:linear-gradient(135deg,#1b62eb,#1049bc);box-shadow:0 10px 25px rgba(20,85,217,.18)}
+.corpHome{background:#f5f8fc;color:var(--ink)}
+.corpHero{background:radial-gradient(circle at 72% 18%,#eaf2ff 0,#f7faff 27%,#fff 62%);min-height:760px;border-bottom:1px solid #dfe7f2}
+.corpNav{max-width:1240px;padding:22px 28px}
+.corpBrand .corpLogo{background:#fff}
+.heroGrid{max-width:1240px;padding:100px 28px 80px}
+.heroCopy h1{font-size:72px;letter-spacing:-.065em}
+.heroCopy p{font-size:16px;max-width:660px}
+.heroPanel{border-radius:25px;border-color:#dce7f6;box-shadow:0 30px 80px rgba(20,64,130,.13);background:rgba(255,255,255,.82);backdrop-filter:blur(20px)}
+.heroPanelTop{padding:17px 20px;border-bottom-color:#e5ebf3}
+.heroPanelMain{padding:30px}
+.heroPanelRows{padding:8px 20px 16px}
+.productCard,.corpPortal{border-radius:19px;border-color:#dfe7f1;box-shadow:0 10px 30px rgba(20,47,91,.035);transition:.2s ease}
+.productCard:hover,.corpPortal:hover{transform:translateY(-3px);border-color:#bcd0ee;box-shadow:0 20px 45px rgba(20,60,120,.09)}
+.productIcon{border-radius:11px;background:#eaf2ff;color:#1455d9}
+.corpSection{max-width:1240px}
+.sectionIntro h2{font-size:36px}
+.corpFooter{max-width:1240px;border-top-color:#dfe7f2}
+@media(max-width:900px){
+ .companyContent{padding:24px 18px 45px}.dashboardHero{padding:25px}.dashboardHero h1{font-size:34px}
+ .portalStats{grid-template-columns:repeat(2,1fr)}.adminStructureGrid{grid-template-columns:1fr}
+ .heroGrid{padding:70px 22px}.heroCopy h1{font-size:52px}
+}
+@media(max-width:640px){
+ .portalStats{grid-template-columns:1fr 1fr}.quickGrid{grid-template-columns:1fr 1fr}
+ .dashboardHero{display:block}.heroPulse{margin-top:22px}
+ .heroCopy h1{font-size:42px}.authMessage h1{font-size:42px}
+}
