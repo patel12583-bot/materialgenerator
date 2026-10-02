@@ -157,7 +157,9 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Hall Tickets"&&role==="Student"?<HallTickets/>
           :page==="Examinations"&&role==="Student"?<Examinations/>
           :page==="Subjects"&&role==="Admin"?<SubjectManagement/>
-          :page==="Master Timetable"&&role==="Admin"?<TimetableManagement canEdit/>\n          :page==="Master Timetable"&&role==="HOD"?<TimetableManagement canEdit={false}/>\n          :page==="Uploads"?<UploadCenter role={role}/>
+          :page==="Master Timetable"&&role==="Admin"?<TimetableManagement canEdit/>
+          :page==="Master Timetable"&&role==="HOD"?<TimetableManagement canEdit={false}/>
+          :page==="Uploads"?<UploadCenter role={role}/>
           :page==="Attendance"&&role==="Faculty"&&sessionId?<LiveAttendance records={records} setStatus={(id,s)=>setRecords(x=>x.map(r=>r.studentId===id?{...r,status:s}:r))} onSubmit={submit} busy={busy} message={message}/>
           :modulePage?<WorkspaceModule role={role} page={page}/>
           :<div className="card emptyState"><h2>Nothing to show yet</h2><p>This workspace is ready for your institution's data.</p></div>}
