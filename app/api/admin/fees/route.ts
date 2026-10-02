@@ -166,12 +166,12 @@ export async function POST(req: Request) {
       const studentFeeId = String(body.studentFeeId || "");
       const discountAmount = money(body.discountAmount) ?? 0;
       const scholarshipAmount = money(body.scholarshipAmount) ?? 0;
-      const fee = await prisma.studentFee.findFirst({where:{id:studentFeeId,student:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}}});
+      const fee = await prisma.studentFee.findFirst({where:{id:studentFeeId,student:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}}}});
       if (!fee) return NextResponse.json({error:"Fee record not found."},{status:404});
       const net=fee.totalAmount-discountAmount-scholarshipAmount;
       if(net<fee.paidAmount) return NextResponse.json({error:"Adjustment cannot reduce the payable amount below payments already received."},{status:400});
-      const updated=await prisma.studentFee.update({where:{id},data:{discountAmount,scholarshipAmount,balanceAmount:net-fee.paidAmount,status:statusFor(net,fee.paidAmount,fee.dueDate)}});
-      await prisma.auditLog.create({data:{actorId:session.userId,action:"ADJUST",entity:"StudentFee",entityId:id,reason:"Fee discount/scholarship adjusted",after:updated as any}});
+      const updated=await prisma.studentFee.update({where:{id:studentFeeId},data:{discountAmount,scholarshipAmount,balanceAmount:net-fee.paidAmount,status:statusFor(net,fee.paidAmount,fee.dueDate)}});
+      await prisma.auditLog.create({data:{actorId:session.userId,action:"ADJUST",entity:"StudentFee",entityId:studentFeeId,reason:"Fee discount/scholarship adjusted",after:updated as any}});
       return NextResponse.json({fee:updated});
     }
 
