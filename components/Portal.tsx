@@ -4,8 +4,10 @@ import AdminWorkspace from "@/components/AdminWorkspace";
 import AdminStudents from "@/components/AdminStudents";
 import AdminAccounts from "@/components/AdminAccounts";
 import FacultyManagement from "@/components/FacultyManagement";
+import FacultySubjectMapping from "@/components/FacultySubjectMapping";
 import SubjectManagement from "@/components/SubjectManagement";
 import TimetableManagement from "@/components/TimetableManagement";
+import AcademicStructure from "@/components/AcademicStructure";
 import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import { useEffect, useMemo, useState } from "react";
@@ -17,12 +19,12 @@ import {
 } from "lucide-react";
 
 const data = {
-  Admin:["Overview","Departments","Students","Faculty","Accounts","Subjects","Master Timetable","Uploads","Leaves","Defaulters","Reports","Audit Logs","Settings"],
-  "Super Admin":["Overview","Institutions","Administrators","Security","Audit Logs","Settings"],
-  HOD:["Overview","Faculty","Students","Attendance Monitor","Uploads","Leaves","Defaulters","Reports","Settings"],
-  Faculty:["Overview","Today's Lectures","Attendance","Timetable","Attendance Reports","Exam Attendance","Uploads","Leave Requests","Adjustments","Reports","Settings"],
-  Student:["Overview","My Attendance","Timetable","Attendance Reports","Uploads","Leave Requests","Hall Tickets","Examinations","Notifications","Reports","Settings"],
-  Parent:["Overview","Attendance","Timetable","Attendance Reports","Uploads","Notifications","Leave Status","Reports","Settings"]
+  Admin:["Overview","Student Management","Faculty Management","Admissions","Academic Structure","Subjects","Faculty-Subject Mapping","Master Timetable","Attendance","Attendance Reports","Leaves","Examinations","Hall Tickets","Results","Assignments","Study Material","AI Study Generator","AI Tutor","PYQ Bank","Notes","Fees & Accounts","Scholarship","Documents","ID Cards","Notifications","SMS / Email / WhatsApp","Helpdesk","Library","Hostel","Transport","Placement","Internship","Events","Certificates","Alumni","Reports & Analytics","Uploads","Audit Logs","Settings"],
+  "Super Admin":["Overview","Institutions","Departments","Programs","Users","Roles & Permissions","Administrators","HODs","Faculty","Students","System Settings","Security","Audit Logs","Database / System Health","Notification Configuration","Integration Configuration","Backup / Export","Access Control","Reports & Analytics","Settings"],
+  HOD:["Overview","Department Overview","Students","Faculty","Subjects","Faculty-Subject Mapping","Master Timetable","Attendance Monitor","Attendance Reports","Defaulters","Leave Approvals","Examinations","Result Monitoring","Faculty Workload","Department Notifications","Assignments","Study Material","PYQ Bank","Notes","Reports","Audit"],
+  Faculty:["Overview","Today's Lectures","My Classes","My Subjects","Timetable","Attendance","Attendance Correction","Attendance Reports","Assignments","Study Material Upload","Question Bank","Exams","Marks Entry","Results","Leave Requests","Substitute Faculty","Student Requests","Notifications","Reports","Profile","Settings"],
+  Student:["Overview","My Profile","My Courses","Timetable","My Attendance","Attendance Alerts","Attendance Reports","Assignments","Study Material","AI Study Generator","AI Tutor","PYQ Bank","Notes","Exams","Hall Tickets","Results","Fees","Leave Requests","Notifications","Library","Hostel","Transport","Documents","Certificates","Helpdesk","Events","Placement","Settings"],
+  Parent:["Overview","My Child","Attendance","Attendance Alerts","Timetable","Assignments","Study Material","Examinations","Hall Tickets","Results","Fees","Leave Status","Notifications","Library","Hostel","Transport","Certificates","Helpdesk","Events","Settings"]
 } as const;
 
 type Role=keyof typeof data;
@@ -46,10 +48,11 @@ const iconFor=(label:string)=>{
 const groupsFor=(role:Role)=>{
   const items=data[role];
   const groups=[
-    {label:"Workspace",items:items.filter(x=>x==="Overview")},
-    {label:"Academic",items:items.filter(x=>["Departments","Subjects","Master Timetable","Timetable","Today's Lectures","Faculty","Students","Attendance Monitor","Institutions","Administrators"].includes(x))},
-    {label:"Operations",items:items.filter(x=>["Attendance","My Attendance","Attendance Reports","Exam Attendance","Hall Tickets","Examinations","Leave Requests","Leaves","Leave Status","Defaulters","Reports","Notifications","Adjustments"].includes(x))},
-    {label:"System",items:items.filter(x=>["Uploads","Audit Logs","Security","Settings"].includes(x))}
+    {label:"Dashboard",items:items.filter(x=>x==="Overview")},
+    {label:"People & Academics",items:items.filter(x=>["Student Management","Faculty Management","Students","Faculty","HODs","Administrators","Users","Roles & Permissions","Department Overview","Departments","Programs","Academic Structure","Subjects","My Classes","My Subjects","My Courses","Faculty-Subject Mapping","Profile","My Profile","My Child"].includes(x))},
+    {label:"Academic Operations",items:items.filter(x=>["Master Timetable","Timetable","Today's Lectures","Attendance","My Attendance","Attendance Monitor","Attendance Correction","Attendance Reports","Attendance Alerts","Assignments","Study Material","Study Material Upload","AI Study Generator","AI Tutor","Question Bank","PYQ Bank","Notes","Exams","Examinations","Hall Tickets","Marks Entry","Results","Result Monitoring","Faculty Workload","Defaulters","Leave Approvals","Leave Requests","Leave Status","Substitute Faculty"].includes(x))},
+    {label:"Campus Services",items:items.filter(x=>["Fees","Fees & Accounts","Scholarship","Library","Hostel","Transport","Placement","Internship","Events","Certificates","Documents","ID Cards","Helpdesk","Notifications","Department Notifications","Student Requests","SMS / Email / WhatsApp","Integration Configuration"].includes(x))},
+    {label:"Governance & Intelligence",items:items.filter(x=>["Reports","Reports & Analytics","Audit","Audit Logs","System Settings","Security","Database / System Health","Notification Configuration","Backup / Export","Access Control","Settings","Uploads"].includes(x))}
   ];
   return groups.filter(x=>x.items.length);
 };
@@ -146,15 +149,19 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
       <section className="portalContent companyContent">
         {message&&<div className="globalNotice"><Activity size={15}/><span>{message}</span><button onClick={()=>setMessage("")}><X size={14}/></button></div>}
         {page==="Overview"?<DashboardHome role={role} title={title} onNavigate={navigate}/>
-          :page==="Departments"&&role==="Admin"?<AdminWorkspace/>
+          :page==="Departments"&&role==="Admin"?<AcademicStructure/>
           :page==="Students"&&role==="Admin"?<AdminStudents/>
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
           :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
+          :page==="Faculty-Subject Mapping"&&(role==="Admin"||role==="HOD")?<FacultySubjectMapping/>
           :page==="Today's Lectures"&&role==="Faculty"?<FacultyToday lectures={lectures} currentTime={currentTime} onStart={startAttendance} busy={busy}/>
           :page==="Hall Tickets"&&role==="Student"?<HallTickets/>
           :page==="Examinations"&&role==="Student"?<Examinations/>
-          :page==="Subjects"&&role==="Admin"?<SubjectManagement/>\n          :page==="Master Timetable"&&role==="Admin"?<TimetableManagement canEdit/>\n          :page==="Master Timetable"&&role==="HOD"?<TimetableManagement canEdit={false}/>\n          :page==="Uploads"?<UploadCenter role={role}/>
+          :page==="Subjects"&&role==="Admin"?<SubjectManagement/>
+          :page==="Master Timetable"&&role==="Admin"?<TimetableManagement canEdit/>
+          :page==="Master Timetable"&&role==="HOD"?<TimetableManagement canEdit={false}/>
+          :page==="Uploads"?<UploadCenter role={role}/>
           :page==="Attendance"&&role==="Faculty"&&sessionId?<LiveAttendance records={records} setStatus={(id,s)=>setRecords(x=>x.map(r=>r.studentId===id?{...r,status:s}:r))} onSubmit={submit} busy={busy} message={message}/>
           :modulePage?<WorkspaceModule role={role} page={page}/>
           :<div className="card emptyState"><h2>Nothing to show yet</h2><p>This workspace is ready for your institution's data.</p></div>}

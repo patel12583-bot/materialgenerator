@@ -48,7 +48,16 @@ export async function POST(req:Request){
     const phone=String(body.phone||"").replace(/\D/g,"");
     const parentPhone=String(body.parentPhone||"").replace(/\D/g,"");
     const email=String(body.email||"").trim()||null;
+    const dateOfBirth=body.dateOfBirth?new Date(body.dateOfBirth):null;
+    const gender=String(body.gender||"").trim()||null;
+    const bloodGroup=String(body.bloodGroup||"").trim()||null;
+    const address=String(body.address||"").trim()||null;
+    const city=String(body.city||"").trim()||null;
+    const state=String(body.state||"").trim()||null;
+    const pinCode=String(body.pinCode||"").replace(/\D/g,"");
 
+    if(dateOfBirth && Number.isNaN(dateOfBirth.getTime())) return NextResponse.json({error:"Invalid date of birth."},{status:400});
+    if(pinCode && pinCode.length!==6) return NextResponse.json({error:"PIN code must be 6 digits."},{status:400});
     if(!name || !rollNo || !divisionId)
       return NextResponse.json({error:"Name, roll number and division are required. Enrollment number can be left blank for automatic generation."},{status:400});
     if(phone && phone.length!==10) return NextResponse.json({error:"Student mobile must be 10 digits."},{status:400});
@@ -77,7 +86,7 @@ export async function POST(req:Request){
         role:"STUDENT",
         active:true,
         passwordHash,
-        student:{create:{divisionId,enrollmentNo,rollNo,name,phone:phone||null,parentPhone:parentPhone||null}}
+        student:{create:{divisionId,enrollmentNo,rollNo,name,dateOfBirth,gender,bloodGroup,address,city,state,pinCode:pinCode||null,phone:phone||null,parentPhone:parentPhone||null}}
       },
       include:{student:true}
     });
@@ -99,6 +108,15 @@ export async function PATCH(req:Request){
     if(!existing)return NextResponse.json({error:"Student not found."},{status:404});
     const name=String(body.name||"").trim(), rollNo=String(body.rollNo||"").trim(), divisionId=String(body.divisionId||existing.divisionId);
     const phone=String(body.phone||"").replace(/\D/g,""), parentPhone=String(body.parentPhone||"").replace(/\D/g,""), email=String(body.email||"").trim()||null;
+    const dateOfBirth=body.dateOfBirth?new Date(body.dateOfBirth):null;
+    const gender=String(body.gender||"").trim()||null;
+    const bloodGroup=String(body.bloodGroup||"").trim()||null;
+    const address=String(body.address||"").trim()||null;
+    const city=String(body.city||"").trim()||null;
+    const state=String(body.state||"").trim()||null;
+    const pinCode=String(body.pinCode||"").replace(/\D/g,"");
+    if(dateOfBirth && Number.isNaN(dateOfBirth.getTime()))return NextResponse.json({error:"Invalid date of birth."},{status:400});
+    if(pinCode&&pinCode.length!==6)return NextResponse.json({error:"PIN code must be 6 digits."},{status:400});
     if(!name||!rollNo||!divisionId)return NextResponse.json({error:"Name, roll number and division are required."},{status:400});
     if(phone&&phone.length!==10)return NextResponse.json({error:"Student mobile must be 10 digits."},{status:400});
     if(parentPhone&&parentPhone.length!==10)return NextResponse.json({error:"Parent mobile must be 10 digits."},{status:400});
@@ -107,7 +125,7 @@ export async function PATCH(req:Request){
     const duplicate=await prisma.student.findFirst({where:{id:{not:studentId},divisionId,rollNo}});
     if(duplicate)return NextResponse.json({error:"Another student already uses this roll number in the selected division."},{status:409});
     const updated=await prisma.$transaction([
-      prisma.student.update({where:{id:studentId},data:{name,rollNo,divisionId,phone:phone||null,parentPhone:parentPhone||null}}),
+      prisma.student.update({where:{id:studentId},data:{name,rollNo,divisionId,dateOfBirth,gender,bloodGroup,address,city,state,pinCode:pinCode||null,phone:phone||null,parentPhone:parentPhone||null}}),
       prisma.user.update({where:{id:existing.userId},data:{email,phone:phone||null}})
     ]);
     return NextResponse.json({student:updated[0]});
@@ -121,7 +139,25 @@ export async function DELETE(req:Request){
     if(!studentId)return NextResponse.json({error:"Student ID is required."},{status:400});
     const student=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},select:{userId:true}});
     if(!student)return NextResponse.json({error:"Student not found."},{status:404});
-    await prisma.user.update({where:{id:student.userId},data:{active:false}});
+    await prisma.$transaction([prisma.user.update({where:{id:student.userId},data:{active:false}}),prisma.student.update({where:{id:studentId},data:{status:"INACTIVE"}}),prisma.auditLog.create({data:{actorId:session.userId,action:"STUDENT_DEACTIVATE",entity:"Student",entityId:studentId,reason:"Student account deactivated by administrator.",after:{active:false,status:"INACTIVE"}}})]);
     return NextResponse.json({ok:true,message:"Student account deactivated."});
   }catch(error){return NextResponse.json({error:"Unable to deactivate student."},{status:500});}
+}
+
+
+export async function PUT(req:Request){
+  const session=await getCurrentUser(); if(!session||!allowed(session.role))return NextResponse.json({error:"Unauthorized"},{status:401});
+  try{
+    const studentId=String(new URL(req.url).searchParams.get("studentId")||"");
+    if(!studentId)return NextResponse.json({error:"Student ID is required."},{status:400});
+    const student=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},include:{user:true}});
+    if(!student)return NextResponse.json({error:"Student not found."},{status:404});
+    if(student.user.active)return NextResponse.json({error:"Student account is already active."},{status:400});
+    await prisma.$transaction([
+      prisma.user.update({where:{id:student.userId},data:{active:true}}),
+      prisma.student.update({where:{id:studentId},data:{status:"ACTIVE"}}),
+      prisma.auditLog.create({data:{actorId:session.userId,action:"STUDENT_REACTIVATE",entity:"Student",entityId:studentId,reason:"Student account reactivated by administrator.",after:{active:true,status:"ACTIVE"}}})
+    ]);
+    return NextResponse.json({ok:true,message:"Student account reactivated."});
+  }catch(error){return NextResponse.json({error:"Unable to reactivate student."},{status:500});}
 }

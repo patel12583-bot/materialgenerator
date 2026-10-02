@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, RefreshCw, Search, Upload, Users, UserPlus, Pencil, UserX, CheckCircle2, Download, RotateCcw } from "lucide-react";
 
 type Division={id:string;name:string;semester:{number:number;program:{name:string;code:string}}};
-type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{id:string;active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
+type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;dateOfBirth:string|null;gender:string|null;bloodGroup:string|null;address:string|null;city:string|null;state:string|null;pinCode:string|null;division:Division;user:{id:string;active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
 
 export default function AdminStudents(){
  const [students,setStudents]=useState<Student[]>([]);
@@ -15,7 +15,7 @@ export default function AdminStudents(){
  const [uploadBusy,setUploadBusy]=useState(false); const [importReport,setImportReport]=useState<{importedCount:number;skippedCount:number;students:any[];errors:string[]}|null>(null);
  const [message,setMessage]=useState(""); const [credentials,setCredentials]=useState<{studentId:string;password:string}|null>(null);
  const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Student|null>(null);
- const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
+ const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:"",dateOfBirth:"",gender:"",bloodGroup:"",address:"",city:"",state:"",pinCode:""});
 
  async function load(){
   setLoading(true);
@@ -75,7 +75,7 @@ export default function AdminStudents(){
    const d=await r.json();
    if(!r.ok) throw new Error(d.error||"Unable to create student.");
    setMessage("Student created successfully. Save the generated credentials below."); setCredentials(d.credentials||null);
-   setForm({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
+   setForm({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:"",dateOfBirth:"",gender:"",bloodGroup:"",address:"",city:"",state:"",pinCode:""});
    setOpen(false);await load();
   }catch(e){setMessage(e instanceof Error?e.message:"Unable to create student.");}
   finally{setBusy(false);}
@@ -108,7 +108,7 @@ export default function AdminStudents(){
     <span><small>{s.phone||"No mobile"}</small><small>{s.parentPhone||"No parent mobile"}</small></span>
     <span className={s.user.active?"accountReady":"accountPending"}>{!s.user.active?"Deactivated":s.user.passwordConfigured?"Active":"Pending activation"}</span>
     <div style={{display:"flex",gap:6}}>
-      <button className="iconBtn" title="Edit student" onClick={()=>{setEditing(s);setForm({name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,divisionId:s.division.id,phone:s.phone||"",parentPhone:s.parentPhone||"",email:s.user.email||""})}}><Pencil size={14}/></button>
+      <button className="iconBtn" title="Edit student" onClick={()=>{setEditing(s);setForm({name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,divisionId:s.division.id,phone:s.phone||"",parentPhone:s.parentPhone||"",email:s.user.email||"",dateOfBirth:s.dateOfBirth?s.dateOfBirth.slice(0,10):"",gender:s.gender||"",bloodGroup:s.bloodGroup||"",address:s.address||"",city:s.city||"",state:s.state||"",pinCode:s.pinCode||""})}}><Pencil size={14}/></button>
       {s.user.active?<button className="iconBtn" title="Deactivate student" onClick={()=>deactivateStudent(s)} disabled={busy}><UserX size={14}/></button>:<button className="iconBtn" title="Reactivate student" onClick={()=>reactivateStudent(s)} disabled={busy}><RotateCcw size={14}/></button>}
     </div>
    </div>)}
@@ -121,6 +121,10 @@ export default function AdminStudents(){
     <label>Division</label><select required value={form.divisionId} onChange={e=>setForm({...form,divisionId:e.target.value})}><option value="">Select division</option>{divisions.map(d=><option key={d.id} value={d.id}>{d.semester.program.code} · Sem {d.semester.number} · Div {d.name}</option>)}</select>
     <div className="formTwo"><div><label>Student mobile</label><input inputMode="numeric" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="10-digit mobile"/></div><div><label>Parent mobile</label><input inputMode="numeric" value={form.parentPhone} onChange={e=>setForm({...form,parentPhone:e.target.value})} placeholder="10-digit mobile"/></div></div>
     <label>Email (optional)</label><input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="student@example.com"/>
+    <div className="formTwo"><div><label>Date of birth</label><input type="date" value={form.dateOfBirth} onChange={e=>setForm({...form,dateOfBirth:e.target.value})}/></div><div><label>Gender</label><select value={form.gender} onChange={e=>setForm({...form,gender:e.target.value})}><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>
+    <div className="formTwo"><div><label>Blood group</label><input value={form.bloodGroup} onChange={e=>setForm({...form,bloodGroup:e.target.value})} placeholder="e.g. B+"/></div><div><label>PIN code</label><input inputMode="numeric" value={form.pinCode} onChange={e=>setForm({...form,pinCode:e.target.value})} placeholder="6-digit PIN"/></div></div>
+    <label>Address</label><input value={form.address} onChange={e=>setForm({...form,address:e.target.value})} placeholder="Street / area / building"/>
+    <div className="formTwo"><div><label>City</label><input value={form.city} onChange={e=>setForm({...form,city:e.target.value})} placeholder="City"/></div><div><label>State</label><input value={form.state} onChange={e=>setForm({...form,state:e.target.value})} placeholder="State"/></div></div>
     <button className="primary fullBtn" disabled={busy}>{busy?(editing?"Saving…":"Creating…"):(editing?"Save changes":"Create student")} {editing?<CheckCircle2 size={14}/>:<Plus size={14}/>}</button>
    </form>
   </div></div>}
