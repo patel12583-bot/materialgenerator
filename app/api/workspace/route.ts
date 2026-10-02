@@ -56,6 +56,32 @@ export async function GET(req: Request) {
     return NextResponse.json({divisions,subjects});
   }
 
+  if (page === "Master Timetable") {
+    const [divisions, subjects, faculty, entries] = await Promise.all([
+      prisma.division.findMany({
+        where:{semester:{program:{department:{institutionId}}}},
+        orderBy:[{semester:{program:{code:"asc"}}},{semester:{number:"asc"}},{name:"asc"}],
+        include:{semester:{include:{program:true}}}
+      }),
+      prisma.subject.findMany({
+        where:{department:{institutionId}},
+        orderBy:[{semester:{program:{code:"asc"}}},{semester:{number:"asc"}},{code:"asc"}],
+        include:{semester:{include:{program:true}}}
+      }),
+      prisma.faculty.findMany({
+        where:{user:{institutionId,active:true}},
+        orderBy:{name:"asc"},
+        include:{subjectMappings:{include:{subject:true}}}
+      }),
+      prisma.timetableEntry.findMany({
+        where:{department:{institutionId},active:true},
+        orderBy:[{dayOfWeek:"asc"},{lectureNumber:"asc"}],
+        include:{division:{include:{semester:{include:{program:true}}}},subject:true,faculty:true}
+      })
+    ]);
+    return NextResponse.json({divisions,subjects,faculty,entries});
+  }
+
   if (page === "Overview") {
     const [students,faculty,subjects,timetable,leaves,notifications] = await Promise.all([
       prisma.student.count({where:{division:{semester:{program:{department:{institutionId}}}}}}),
