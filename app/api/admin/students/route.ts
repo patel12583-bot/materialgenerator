@@ -29,7 +29,7 @@ export async function GET(req:Request){
       ]}:{})
     },
     orderBy:[{division:{semester:{program:{code:"asc"}}}},{division:{semester:{number:"asc"}}},{rollNo:"asc"}],
-    include:{division:{include:{semester:{include:{program:true}}}},user:{select:{id:true,active:true,email:true,phone:true,passwordHash:true}}}
+    include:{division:{include:{semester:{include:{program:true}}}},user:{select:{id:true,active:true,email:true,phone:true,passwordHash:true}},parentLinks:{include:{parent:{include:{user:{select:{username:true,active:true,email:true,phone:true}}}}}}}
   });
 
   return NextResponse.json({divisions,students:students.map(s=>({...s,user:{...s.user,passwordConfigured:Boolean(s.user.passwordHash),passwordHash:undefined}}))});
@@ -41,6 +41,26 @@ export async function POST(req:Request){
 
   try{
     const body=await req.json();
+    if(body.action==="create-parent"){
+      const studentId=String(body.studentId||"");
+      const student=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},include:{parentLinks:{include:{parent:{include:{user:true}}}}}});
+      if(!student)return NextResponse.json({error:"Student not found."},{status:404});
+      const existingLink=student.parentLinks[0];
+      if(existingLink)return NextResponse.json({parent:{id:existingLink.parent.id,name:existingLink.parent.name,username:existingLink.parent.user.username,active:existingLink.parent.user.active},message:"Parent account is already linked."});
+      const phone=String(body.phone||student.parentPhone||"").replace(/\D/g,"");
+      const parentName=String(body.parentName||"Parent of "+student.name).trim();
+      if(phone.length!==10)return NextResponse.json({error:"A 10-digit parent mobile number is required."},{status:400});
+      const username="PARENT-"+student.enrollmentNo;
+      const generatedPassword=generatePassword();
+      const passwordHash=await bcrypt.hash(generatedPassword,12);
+      const result=await prisma.$transaction(async tx=>{
+        const user=await tx.user.create({data:{institutionId:session.institutionId,departmentId:(await tx.student.findUnique({where:{id:studentId},include:{division:{include:{semester:{include:{program:true}}}}}}))?.division.semester.program.departmentId,username,phone,passwordHash,role:"PARENT",active:true,parent:{create:{name:parentName,phone}}}});
+        await tx.parentStudent.create({data:{parentId:(await tx.parent.findUniqueOrThrow({where:{userId:user.id}})).id,studentId}});
+        await tx.auditLog.create({data:{actorId:session.userId,action:"CREATE",entity:"Parent",entityId:user.id,reason:"Parent account linked to student"}});
+        return user;
+      });
+      return NextResponse.json({parent:{username,phone},credentials:{username,password:generatedPassword},message:"Parent account created and linked."},{status:201});
+    }
     const name=String(body.name||"").trim();
     let enrollmentNo=String(body.enrollmentNo||"").trim();
     const rollNo=String(body.rollNo||"").trim();
