@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     const status = url.searchParams.get("status") || "";
 
     if (adminRoles.includes(session.role)) {
-      const [structures, fees] = await Promise.all([
+      const [structures, fees, programs, semesters, students] = await Promise.all([
         prisma.feeStructure.findMany({
           where:{institutionId:session.institutionId},
           orderBy:[{academicYear:"desc"},{createdAt:"desc"}],
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
           }
         }),
         ]);
-      return NextResponse.json({structures,fees});
+      return NextResponse.json({structures,fees,programs,semesters,students});
     }
 
     let studentIds:string[] = [];
