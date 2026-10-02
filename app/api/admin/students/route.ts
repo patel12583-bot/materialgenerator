@@ -50,7 +50,7 @@ export async function POST(req:Request){
     const email=String(body.email||"").trim()||null;
 
     if(!name || !rollNo || !divisionId)
-      return NextResponse.json({error:"Name, enrollment number, roll number and division are required."},{status:400});
+      return NextResponse.json({error:"Name, roll number and division are required. Enrollment number can be left blank for automatic generation."},{status:400});
     if(phone && phone.length!==10) return NextResponse.json({error:"Student mobile must be 10 digits."},{status:400});
     if(parentPhone && parentPhone.length!==10) return NextResponse.json({error:"Parent mobile must be 10 digits."},{status:400});
 
