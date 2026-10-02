@@ -44,9 +44,9 @@ export async function GET(req: Request) {
           where:{
             student:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}},
             ...(status ? {status: status as any} : {}),
-            ...(q ? {student:{OR:[
-              {name:{contains:q,mode:"insensitive"}},
-              {enrollmentNo:{contains:q,mode:"insensitive"}}
+            ...(q ? {student:{AND:[
+              {division:{semester:{program:{department:{institutionId:session.institutionId}}}}},
+              {OR:[{name:{contains:q,mode:"insensitive"}},{enrollmentNo:{contains:q,mode:"insensitive"}}]}
             ]}} : {})
           },
           orderBy:{assignedAt:"desc"},
