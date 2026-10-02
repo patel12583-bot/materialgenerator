@@ -378,7 +378,7 @@ export async function POST(req: Request) {
         const total=s.attendance.length, present=s.attendance.filter(a=>a.status==="PRESENT"||a.status==="LATE_PRESENT").length, percentage=pct(present,total);
         if(!s.parentPhone||!total||percentage>=threshold) continue;
         const key=`DEFAULTER_WARNING:${s.id}:${new Date().toISOString().slice(0,10)}`;
-        const exists=await prisma.notification.findFirst({where:{dedupeKey:key}});
+        const exists=await prisma.notification.findFirst({where:{dedupeKey:{startsWith:key}}});
         if(exists) continue;
         const payload={studentName:s.name,percentage,threshold,message:`નમસ્તે વાલીશ્રી, આપના પુત્ર/પુત્રી ${s.name} ની attendance ${percentage}% છે. Minimum required ${threshold}% છે. - Noble Group of Institutions`};
         fresh.push({studentId:s.id,channel:"SMS",recipient:s.parentPhone,template:"DEFAULTER_WARNING",dedupeKey:key+":SMS",payload});
