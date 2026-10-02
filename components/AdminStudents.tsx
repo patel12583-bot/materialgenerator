@@ -13,7 +13,7 @@ export default function AdminStudents(){
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
  const [uploadBusy,setUploadBusy]=useState(false);
- const [message,setMessage]=useState("");
+ const [message,setMessage]=useState(""); const [credentials,setCredentials]=useState<{studentId:string;password:string}|null>(null);
  const [open,setOpen]=useState(false);
  const [form,setForm]=useState({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
 
@@ -47,7 +47,7 @@ export default function AdminStudents(){
    const r=await fetch("/api/admin/students",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(form)});
    const d=await r.json();
    if(!r.ok) throw new Error(d.error||"Unable to create student.");
-   setMessage("Student created. Student can now use Create Account with this enrollment number.");
+   setMessage("Student created successfully. Save the generated credentials below."); setCredentials(d.credentials||null);
    setForm({name:"",enrollmentNo:"",rollNo:"",divisionId:"",phone:"",parentPhone:"",email:""});
    setOpen(false);await load();
   }catch(e){setMessage(e instanceof Error?e.message:"Unable to create student.");}
@@ -70,7 +70,7 @@ export default function AdminStudents(){
    <button className="secondaryBtn" onClick={load} disabled={loading}><RefreshCw size={14}/> Refresh</button>
    <span className="studentCount"><Users size={14}/> {students.length} students</span>
   </div>
-  {message&&<div className="loginError adminMessage">{message}</div>}
+  {message&&<div className="loginError adminMessage">{message}</div>}{credentials&&<div className="card" style={{marginTop:12}}><div className="eyebrow">GENERATED STUDENT CREDENTIALS</div><p style={{margin:"8px 0"}}><b>Student ID:</b> {credentials.studentId}</p><p style={{margin:"8px 0"}}><b>Password:</b> {credentials.password}</p><small className="quickText">Save these credentials now. The password is stored only as a secure hash.</small></div>}
   <div className="card studentAdminTable">
    <div className="studentAdminHead"><span>STUDENT</span><span>ENROLLMENT</span><span>CLASS</span><span>CONTACT</span><span>ACCOUNT</span></div>
    {loading?<div className="emptyState">Loading students…</div>:students.length===0?<div className="emptyState">No students found. Add the first student record.</div>:students.map(s=><div className="studentAdminRow" key={s.id}>
@@ -85,7 +85,7 @@ export default function AdminStudents(){
    <div className="cardHead"><div><span className="eyebrow">NEW STUDENT</span><h2>Create student record</h2></div><button type="button" className="iconBtn" onClick={()=>setOpen(false)}>×</button></div>
    <form className="adminForm" onSubmit={createStudent}>
     <label>Full name</label><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Student full name"/>
-    <div className="formTwo"><div><label>Enrollment number</label><input required value={form.enrollmentNo} onChange={e=>setForm({...form,enrollmentNo:e.target.value})} placeholder="NOBLE-BCA-002"/></div><div><label>Roll number</label><input required value={form.rollNo} onChange={e=>setForm({...form,rollNo:e.target.value})} placeholder="2"/></div></div>
+    <div className="formTwo"><div><label>Enrollment number <span style={{fontWeight:400,color:"#98a2b3"}}>(optional — auto-generated if blank)</span></label><input value={form.enrollmentNo} onChange={e=>setForm({...form,enrollmentNo:e.target.value})} placeholder="NOBLE-BCA-002"/></div><div><label>Roll number</label><input required value={form.rollNo} onChange={e=>setForm({...form,rollNo:e.target.value})} placeholder="2"/></div></div>
     <label>Division</label><select required value={form.divisionId} onChange={e=>setForm({...form,divisionId:e.target.value})}><option value="">Select division</option>{divisions.map(d=><option key={d.id} value={d.id}>{d.semester.program.code} · Sem {d.semester.number} · Div {d.name}</option>)}</select>
     <div className="formTwo"><div><label>Student mobile</label><input inputMode="numeric" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="10-digit mobile"/></div><div><label>Parent mobile</label><input inputMode="numeric" value={form.parentPhone} onChange={e=>setForm({...form,parentPhone:e.target.value})} placeholder="10-digit mobile"/></div></div>
     <label>Email (optional)</label><input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="student@example.com"/>
