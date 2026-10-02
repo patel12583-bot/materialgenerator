@@ -22,7 +22,7 @@ export async function POST(req:Request){
 
   const divisions=await prisma.division.findMany({where:{semester:{program:{department:{institutionId:session.institutionId}}}},include:{semester:{include:{program:true}}}});
   const divisionMap=new Map(divisions.map(d=>[`${norm(d.semester.program.code)}|${d.semester.number}|${norm(d.name)}`,d]));
-  const existing=new Set((await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId:session.institutionId}}}},select:{enrollmentNo:true}})).map(s=>s.enrollmentNo));
+  const existingRows=await prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId:session.institutionId}}}}},select:{enrollmentNo:true}});\n  const existing=new Set(existingRows.map(s=>s.enrollmentNo));
   const imported:any[]=[];const errors:string[]=[];
   for(let i=0;i<rows.length;i++){
    const row=rows[i];const line=i+2;
