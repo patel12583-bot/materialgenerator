@@ -4,6 +4,7 @@ import AdminWorkspace from "@/components/AdminWorkspace";
 import AdminStudents from "@/components/AdminStudents";
 import AdminAccounts from "@/components/AdminAccounts";
 import FacultyManagement from "@/components/FacultyManagement";
+import FacultySubjectMapping from "@/components/FacultySubjectMapping";
 import SubjectManagement from "@/components/SubjectManagement";
 import TimetableManagement from "@/components/TimetableManagement";
 import WorkspaceModule from "@/components/WorkspaceModule";
@@ -17,9 +18,9 @@ import {
 } from "lucide-react";
 
 const data = {
-  Admin:["Overview","Departments","Students","Faculty","Accounts","Subjects","Master Timetable","Uploads","Leaves","Defaulters","Reports","Audit Logs","Settings"],
+  Admin:["Overview","Departments","Students","Faculty","Faculty-Subject Mapping","Accounts","Subjects","Master Timetable","Uploads","Leaves","Defaulters","Reports","Audit Logs","Settings"],
   "Super Admin":["Overview","Institutions","Administrators","Security","Audit Logs","Settings"],
-  HOD:["Overview","Faculty","Students","Attendance Monitor","Uploads","Leaves","Defaulters","Reports","Settings"],
+  HOD:["Overview","Faculty","Faculty-Subject Mapping","Students","Attendance Monitor","Uploads","Leaves","Defaulters","Reports","Settings"],
   Faculty:["Overview","Today's Lectures","Attendance","Timetable","Attendance Reports","Exam Attendance","Uploads","Leave Requests","Adjustments","Reports","Settings"],
   Student:["Overview","My Attendance","Timetable","Attendance Reports","Uploads","Leave Requests","Hall Tickets","Examinations","Notifications","Reports","Settings"],
   Parent:["Overview","Attendance","Timetable","Attendance Reports","Uploads","Notifications","Leave Status","Reports","Settings"]
@@ -47,7 +48,7 @@ const groupsFor=(role:Role)=>{
   const items=data[role];
   const groups=[
     {label:"Workspace",items:items.filter(x=>x==="Overview")},
-    {label:"Academic",items:items.filter(x=>["Departments","Subjects","Master Timetable","Timetable","Today's Lectures","Faculty","Students","Attendance Monitor","Institutions","Administrators"].includes(x))},
+    {label:"Academic",items:items.filter(x=>["Departments","Subjects","Master Timetable","Timetable","Today's Lectures","Faculty","Faculty-Subject Mapping","Students","Attendance Monitor","Institutions","Administrators"].includes(x))},
     {label:"Operations",items:items.filter(x=>["Attendance","My Attendance","Attendance Reports","Exam Attendance","Hall Tickets","Examinations","Leave Requests","Leaves","Leave Status","Defaulters","Reports","Notifications","Adjustments"].includes(x))},
     {label:"System",items:items.filter(x=>["Uploads","Audit Logs","Security","Settings"].includes(x))}
   ];
@@ -151,10 +152,12 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
           :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
+          :page==="Faculty-Subject Mapping"&&(role==="Admin"||role==="HOD")?<FacultySubjectMapping/>
           :page==="Today's Lectures"&&role==="Faculty"?<FacultyToday lectures={lectures} currentTime={currentTime} onStart={startAttendance} busy={busy}/>
           :page==="Hall Tickets"&&role==="Student"?<HallTickets/>
           :page==="Examinations"&&role==="Student"?<Examinations/>
-          :page==="Subjects"&&role==="Admin"?<SubjectManagement/>\n          :page==="Master Timetable"&&role==="Admin"?<TimetableManagement canEdit/>\n          :page==="Master Timetable"&&role==="HOD"?<TimetableManagement canEdit={false}/>\n          :page==="Uploads"?<UploadCenter role={role}/>
+          :page==="Subjects"&&role==="Admin"?<SubjectManagement/>
+          :page==="Master Timetable"&&role==="Admin"?<TimetableManagement canEdit/>\n          :page==="Master Timetable"&&role==="HOD"?<TimetableManagement canEdit={false}/>\n          :page==="Uploads"?<UploadCenter role={role}/>
           :page==="Attendance"&&role==="Faculty"&&sessionId?<LiveAttendance records={records} setStatus={(id,s)=>setRecords(x=>x.map(r=>r.studentId===id?{...r,status:s}:r))} onSubmit={submit} busy={busy} message={message}/>
           :modulePage?<WorkspaceModule role={role} page={page}/>
           :<div className="card emptyState"><h2>Nothing to show yet</h2><p>This workspace is ready for your institution's data.</p></div>}
