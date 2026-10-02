@@ -7,6 +7,7 @@ import FacultyManagement from "@/components/FacultyManagement";
 import FacultySubjectMapping from "@/components/FacultySubjectMapping";
 import SubjectManagement from "@/components/SubjectManagement";
 import TimetableManagement from "@/components/TimetableManagement";
+import AcademicStructure from "@/components/AcademicStructure";
 import WorkspaceModule from "@/components/WorkspaceModule";
 import UploadCenter from "@/components/UploadCenter";
 import { useEffect, useMemo, useState } from "react";
@@ -147,7 +148,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
       <section className="portalContent companyContent">
         {message&&<div className="globalNotice"><Activity size={15}/><span>{message}</span><button onClick={()=>setMessage("")}><X size={14}/></button></div>}
         {page==="Overview"?<DashboardHome role={role} title={title} onNavigate={navigate}/>
-          :page==="Departments"&&role==="Admin"?<AdminWorkspace/>
+          :page==="Departments"&&role==="Admin"?<AcademicStructure/>
           :page==="Students"&&role==="Admin"?<AdminStudents/>
           :page==="Accounts"&&role==="Admin"?<AdminAccounts/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
