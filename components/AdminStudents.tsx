@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, RefreshCw, Search, Upload, Users, UserPlus, Pencil, UserX, CheckCircle2, Download } from "lucide-react";
+import { Plus, RefreshCw, Search, Upload, Users, UserPlus, Pencil, UserX, CheckCircle2, Download, RotateCcw } from "lucide-react";
 
 type Division={id:string;name:string;semester:{number:number;program:{name:string;code:string}}};
 type Student={id:string;name:string;enrollmentNo:string;rollNo:string;phone:string|null;parentPhone:string|null;division:Division;user:{id:string;active:boolean;email:string|null;phone:string|null;passwordConfigured:boolean}};
@@ -46,7 +46,7 @@ export default function AdminStudents(){
   if(!importReport?.students?.length)return;
   const header="Name,Enrollment,Roll,Program,Semester,Division,Password";
   const lines=importReport.students.map((s:any)=>[s.name,s.enrollmentNo,s.rollNo,s.program,s.semester,s.division,s.password].map((v:any)=>'"'+String(v??"").replace(/"/g,'""')+'"').join(","));
-  const blob=new Blob([[header,...lines].join("\\n")],{type:"text/csv;charset=utf-8"});
+  const blob=new Blob([[header,...lines].join("\n")],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="student-login-credentials.csv";a.click();URL.revokeObjectURL(url);
 }
  async function saveEdit(e:React.FormEvent){
@@ -56,6 +56,11 @@ export default function AdminStudents(){
    const d=await r.json(); if(!r.ok)throw new Error(d.error||"Unable to update student.");
    setMessage("Student record updated successfully."); setEditing(null); await load();
   }catch(e){setMessage(e instanceof Error?e.message:"Unable to update student.");}finally{setBusy(false);}
+ }
+ async function reactivateStudent(s:Student){
+  setBusy(true);setMessage("");
+  try{const r=await fetch("/api/admin/students?studentId="+encodeURIComponent(s.id),{method:"PUT"});const d=await r.json();if(!r.ok)throw new Error(d.error||"Unable to reactivate student.");setMessage(d.message||"Student account reactivated.");await load();}
+  catch(e){setMessage(e instanceof Error?e.message:"Unable to reactivate student.");}finally{setBusy(false);}
  }
  async function deactivateStudent(s:Student){
   if(!window.confirm(`Deactivate ${s.name}'s login account?`))return;
@@ -104,7 +109,7 @@ export default function AdminStudents(){
     <span className={s.user.active?"accountReady":"accountPending"}>{!s.user.active?"Deactivated":s.user.passwordConfigured?"Active":"Pending activation"}</span>
     <div style={{display:"flex",gap:6}}>
       <button className="iconBtn" title="Edit student" onClick={()=>{setEditing(s);setForm({name:s.name,enrollmentNo:s.enrollmentNo,rollNo:s.rollNo,divisionId:s.division.id,phone:s.phone||"",parentPhone:s.parentPhone||"",email:s.user.email||""})}}><Pencil size={14}/></button>
-      {s.user.active&&<button className="iconBtn" title="Deactivate student" onClick={()=>deactivateStudent(s)} disabled={busy}><UserX size={14}/></button>}
+      {s.user.active?<button className="iconBtn" title="Deactivate student" onClick={()=>deactivateStudent(s)} disabled={busy}><UserX size={14}/></button>:<button className="iconBtn" title="Reactivate student" onClick={()=>reactivateStudent(s)} disabled={busy}><RotateCcw size={14}/></button>}
     </div>
    </div>)}
   </div>
