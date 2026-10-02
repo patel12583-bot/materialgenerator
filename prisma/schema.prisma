@@ -47,6 +47,15 @@ enum StudentStatus {
   GRADUATED
 }
 
+
+
+enum FeeStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
 enum ExamType {
   MID_SEM
   FINAL_EXAM
@@ -70,6 +79,7 @@ model Institution {
   users User[]
   examSessions ExamSession[]
   admissionApplications AdmissionApplication[]
+  feeStructures FeeStructure[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -99,6 +109,7 @@ model Program {
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   semesters Semester[]
   admissionApplications AdmissionApplication[]
+  feeStructures FeeStructure[]
   @@unique([departmentId, code])
 }
 
@@ -110,6 +121,7 @@ model Semester {
   divisions Division[]
   subjects Subject[]
   admissionApplications AdmissionApplication[]
+  feeStructures FeeStructure[]
   @@unique([programId, number])
 }
 
@@ -234,6 +246,7 @@ model Student {
   division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   admissionApplication AdmissionApplication? @relation("AdmissionStudent")
+  fees StudentFee[]
   parentLinks ParentStudent[]
   attendance AttendanceRecord[]
   examAttendance ExamRecord[]
@@ -447,4 +460,63 @@ model StudentDocument {
   uploadedAt DateTime @default(now())
   student Student @relation(fields:[studentId], references:[id], onDelete:Cascade)
   @@index([studentId, type])
+}
+model FeeStructure {
+  id String @id @default(cuid())
+  institutionId String
+  programId String
+  semesterId String
+  name String
+  academicYear String
+  tuitionFee Int @default(0)
+  examFee Int @default(0)
+  libraryFee Int @default(0)
+  labFee Int @default(0)
+  otherFee Int @default(0)
+  dueDate DateTime
+  active Boolean @default(true)
+  institution Institution @relation(fields:[institutionId], references:[id], onDelete:Cascade)
+  program Program @relation(fields:[programId], references:[id], onDelete:Restrict)
+  semester Semester @relation(fields:[semesterId], references:[id], onDelete:Restrict)
+  studentFees StudentFee[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([institutionId, academicYear, active])
+  @@index([programId, semesterId])
+}
+
+model StudentFee {
+  id String @id @default(cuid())
+  studentId String
+  feeStructureId String
+  totalAmount Int
+  discountAmount Int @default(0)
+  scholarshipAmount Int @default(0)
+  paidAmount Int @default(0)
+  balanceAmount Int
+  dueDate DateTime
+  status FeeStatus @default(PENDING)
+  student Student @relation(fields:[studentId], references:[id], onDelete:Cascade)
+  feeStructure FeeStructure @relation(fields:[feeStructureId], references:[id], onDelete:Restrict)
+  payments FeePayment[]
+  assignedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([studentId, feeStructureId])
+  @@index([studentId, status])
+  @@index([feeStructureId, status])
+}
+
+model FeePayment {
+  id String @id @default(cuid())
+  studentFeeId String
+  receiptNo String @unique
+  amount Int
+  method String
+  reference String?
+  note String?
+  paidAt DateTime @default(now())
+  recordedById String
+  studentFee StudentFee @relation(fields:[studentFeeId], references:[id], onDelete:Restrict)
+  recordedBy User @relation(fields:[recordedById], references:[id], onDelete:Restrict)
+  @@index([studentFeeId, paidAt])
 }
