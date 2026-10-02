@@ -1,0 +1,1 @@
+-- Baseline marker for the pre-existing production database. The database was created before Prisma Migrate was introduced. This migration is intentionally empty and is marked as applied during deployment.
