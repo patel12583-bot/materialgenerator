@@ -1,0 +1,25 @@
+-- Student profile and document lifecycle
+DO $$ BEGIN
+  CREATE TYPE "StudentStatus" AS ENUM ('ACTIVE','INACTIVE','ALUMNI','TRANSFERRED','SUSPENDED','GRADUATED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "dateOfBirth" TIMESTAMP(3);
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "gender" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "bloodGroup" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "address" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "city" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "state" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "pinCode" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "status" "StudentStatus" NOT NULL DEFAULT 'ACTIVE';
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "admissionDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+CREATE TABLE IF NOT EXISTS "StudentDocument" (
+  "id" TEXT NOT NULL,
+  "studentId" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "fileUrl" TEXT,
+  "verified" BOOLEAN NOT NULL DEFAULT false,
+  "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "StudentDocument_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "StudentDocument_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "StudentDocument_studentId_type_idx" ON "StudentDocument"("studentId","type");
