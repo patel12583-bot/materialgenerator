@@ -29,7 +29,7 @@ export async function GET(req:Request){
       ]}:{})
     },
     orderBy:[{division:{semester:{program:{code:"asc"}}}},{division:{semester:{number:"asc"}}},{rollNo:"asc"}],
-    include:{division:{include:{semester:{include:{program:true}}}},user:{select:{active:true,email:true,phone:true,passwordHash:true}}}
+    include:{division:{include:{semester:{include:{program:true}}}},user:{select:{id:true,active:true,email:true,phone:true,passwordHash:true}}}
   });
 
   return NextResponse.json({divisions,students:students.map(s=>({...s,user:{...s.user,passwordConfigured:Boolean(s.user.passwordHash),passwordHash:undefined}}))});
@@ -87,4 +87,41 @@ export async function POST(req:Request){
     if(message.includes("Unique constraint")) return NextResponse.json({error:"Enrollment number, username or roll number already exists."},{status:409});
     return NextResponse.json({error:"Unable to create student."},{status:500});
   }
+}
+
+
+export async function PATCH(req:Request){
+  const session=await getCurrentUser(); if(!session||!allowed(session.role))return NextResponse.json({error:"Unauthorized"},{status:401});
+  try{
+    const body=await req.json(); const studentId=String(body.studentId||"");
+    if(!studentId)return NextResponse.json({error:"Student ID is required."},{status:400});
+    const existing=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},include:{user:true}});
+    if(!existing)return NextResponse.json({error:"Student not found."},{status:404});
+    const name=String(body.name||"").trim(), rollNo=String(body.rollNo||"").trim(), divisionId=String(body.divisionId||existing.divisionId);
+    const phone=String(body.phone||"").replace(/\D/g,""), parentPhone=String(body.parentPhone||"").replace(/\D/g,""), email=String(body.email||"").trim()||null;
+    if(!name||!rollNo||!divisionId)return NextResponse.json({error:"Name, roll number and division are required."},{status:400});
+    if(phone&&phone.length!==10)return NextResponse.json({error:"Student mobile must be 10 digits."},{status:400});
+    if(parentPhone&&parentPhone.length!==10)return NextResponse.json({error:"Parent mobile must be 10 digits."},{status:400});
+    const division=await prisma.division.findFirst({where:{id:divisionId,semester:{program:{department:{institutionId:session.institutionId}}}}});
+    if(!division)return NextResponse.json({error:"Division not found."},{status:404});
+    const duplicate=await prisma.student.findFirst({where:{id:{not:studentId},divisionId,rollNo}});
+    if(duplicate)return NextResponse.json({error:"Another student already uses this roll number in the selected division."},{status:409});
+    const updated=await prisma.$transaction([
+      prisma.student.update({where:{id:studentId},data:{name,rollNo,divisionId,phone:phone||null,parentPhone:parentPhone||null}}),
+      prisma.user.update({where:{id:existing.userId},data:{email,phone:phone||null}})
+    ]);
+    return NextResponse.json({student:updated[0]});
+  }catch(error){return NextResponse.json({error:"Unable to update student."},{status:500});}
+}
+
+export async function DELETE(req:Request){
+  const session=await getCurrentUser(); if(!session||!allowed(session.role))return NextResponse.json({error:"Unauthorized"},{status:401});
+  try{
+    const studentId=String(new URL(req.url).searchParams.get("studentId")||"");
+    if(!studentId)return NextResponse.json({error:"Student ID is required."},{status:400});
+    const student=await prisma.student.findFirst({where:{id:studentId,division:{semester:{program:{department:{institutionId:session.institutionId}}}}},select:{userId:true}});
+    if(!student)return NextResponse.json({error:"Student not found."},{status:404});
+    await prisma.user.update({where:{id:student.userId},data:{active:false}});
+    return NextResponse.json({ok:true,message:"Student account deactivated."});
+  }catch(error){return NextResponse.json({error:"Unable to deactivate student."},{status:500});}
 }
