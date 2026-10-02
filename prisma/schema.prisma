@@ -83,6 +83,7 @@ model Department {
   programs Program[]
   users User[]
   subjects Subject[]
+  admissionApplications AdmissionApplication[]
   timetables TimetableEntry[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -97,6 +98,7 @@ model Program {
   totalSemesters Int
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   semesters Semester[]
+  admissionApplications AdmissionApplication[]
   @@unique([departmentId, code])
 }
 
@@ -107,6 +109,7 @@ model Semester {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
   divisions Division[]
   subjects Subject[]
+  admissionApplications AdmissionApplication[]
   @@unique([programId, number])
 }
 
@@ -118,6 +121,7 @@ model Division {
   students Student[]
   timetable TimetableEntry[]
   examSessions ExamSession[]
+  admissionApplications AdmissionApplication[]
   @@unique([semesterId, name])
 }
 
