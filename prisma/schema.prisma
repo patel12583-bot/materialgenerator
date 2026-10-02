@@ -156,6 +156,7 @@ model User {
   student Student?
   parent Parent?
   auditLogs AuditLog[]
+  feePayments FeePayment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
