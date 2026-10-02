@@ -108,6 +108,15 @@ export async function PATCH(req:Request){
     if(!existing)return NextResponse.json({error:"Student not found."},{status:404});
     const name=String(body.name||"").trim(), rollNo=String(body.rollNo||"").trim(), divisionId=String(body.divisionId||existing.divisionId);
     const phone=String(body.phone||"").replace(/\D/g,""), parentPhone=String(body.parentPhone||"").replace(/\D/g,""), email=String(body.email||"").trim()||null;
+    const dateOfBirth=body.dateOfBirth?new Date(body.dateOfBirth):null;
+    const gender=String(body.gender||"").trim()||null;
+    const bloodGroup=String(body.bloodGroup||"").trim()||null;
+    const address=String(body.address||"").trim()||null;
+    const city=String(body.city||"").trim()||null;
+    const state=String(body.state||"").trim()||null;
+    const pinCode=String(body.pinCode||"").replace(/\D/g,"");
+    if(dateOfBirth && Number.isNaN(dateOfBirth.getTime()))return NextResponse.json({error:"Invalid date of birth."},{status:400});
+    if(pinCode&&pinCode.length!==6)return NextResponse.json({error:"PIN code must be 6 digits."},{status:400});
     if(!name||!rollNo||!divisionId)return NextResponse.json({error:"Name, roll number and division are required."},{status:400});
     if(phone&&phone.length!==10)return NextResponse.json({error:"Student mobile must be 10 digits."},{status:400});
     if(parentPhone&&parentPhone.length!==10)return NextResponse.json({error:"Parent mobile must be 10 digits."},{status:400});
