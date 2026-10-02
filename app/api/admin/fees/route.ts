@@ -57,6 +57,9 @@ export async function GET(req: Request) {
             payments:{orderBy:{paidAt:"desc"},include:{recordedBy:{select:{username:true}}}}
           }
         }),
+        prisma.program.findMany({where:{department:{institutionId:session.institutionId}},orderBy:{code:"asc"},include:{department:{select:{code:true,name:true}},semesters:{orderBy:{number:"asc"}}}}),
+        prisma.semester.findMany({where:{program:{department:{institutionId:session.institutionId}}},orderBy:[{program:{code:"asc"}},{number:"asc"}],include:{program:{select:{id:true,name:true,code:true}}}}),
+        prisma.student.findMany({where:{division:{semester:{program:{department:{institutionId:session.institutionId}}}},status:"ACTIVE"},orderBy:{rollNo:"asc"},take:500,select:{id:true,name:true,enrollmentNo:true,rollNo:true,division:{select:{name:true,semester:{select:{number:true,program:{select:{id:true,name:true,code:true}}}}}}}})
         ]);
       return NextResponse.json({structures,fees,programs,semesters,students});
     }
