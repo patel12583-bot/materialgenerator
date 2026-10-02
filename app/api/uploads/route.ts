@@ -16,9 +16,6 @@ export async function POST(req: Request) {
   if (!user || !allowedRoles.has(user.role)) return NextResponse.json({error:"Unauthorized"},{status:401});
 
   try {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return NextResponse.json({error:"Vercel Blob is not connected to this deployment. Redeploy after adding the Blob store."},{status:503});
-    }
     const form = await req.formData();
     const file = form.get("file");
     const category = safe(String(form.get("category") || "general"));
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
     },{status:201});
   } catch (error) {
     console.error("generic upload error", error);
-    return NextResponse.json({error:"Upload failed. Configure a Vercel Blob store for this project and try again."},{status:500});
+    return NextResponse.json({error:"Upload failed. Make sure the Vercel Blob store is connected to this project and try again."},{status:500});
   }
 }
 
