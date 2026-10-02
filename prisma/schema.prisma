@@ -30,6 +30,14 @@ enum LeaveStatus {
   REJECTED
 }
 
+enum AdmissionStatus {
+  APPLIED
+  DOCUMENT_VERIFICATION
+  APPROVED
+  REJECTED
+  ENROLLED
+}
+
 enum StudentStatus {
   ACTIVE
   INACTIVE
@@ -61,6 +69,7 @@ model Institution {
   departments Department[]
   users User[]
   examSessions ExamSession[]
+  admissionApplications AdmissionApplication[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -151,6 +160,54 @@ model Faculty {
   mainSubstituteAssignments SubstituteAssignment[] @relation("MainFaculty")
 }
 
+model AdmissionApplication {
+  id String @id @default(cuid())
+  institutionId String
+  applicationNo String @unique
+  admissionNo String? @unique
+  name String
+  email String?
+  phone String?
+  parentName String?
+  parentPhone String?
+  dateOfBirth DateTime?
+  gender String?
+  address String?
+  departmentId String
+  programId String
+  semesterId String
+  divisionId String
+  status AdmissionStatus @default(APPLIED)
+  rejectionReason String?
+  appliedAt DateTime @default(now())
+  verifiedAt DateTime?
+  approvedAt DateTime?
+  enrolledAt DateTime?
+  studentId String? @unique
+  institution Institution @relation(fields:[institutionId], references:[id], onDelete:Cascade)
+  department Department @relation(fields:[departmentId], references:[id], onDelete:Restrict)
+  program Program @relation(fields:[programId], references:[id], onDelete:Restrict)
+  semester Semester @relation(fields:[semesterId], references:[id], onDelete:Restrict)
+  division Division @relation(fields:[divisionId], references:[id], onDelete:Restrict)
+  student Student? @relation("AdmissionStudent", fields:[studentId], references:[id], onDelete:SetNull)
+  documents AdmissionDocument[]
+  @@index([institutionId,status])
+  @@index([divisionId,status])
+}
+
+model AdmissionDocument {
+  id String @id @default(cuid())
+  applicationId String
+  type String
+  name String
+  fileUrl String
+  verified Boolean @default(false)
+  verificationNote String?
+  uploadedAt DateTime @default(now())
+  application AdmissionApplication @relation(fields:[applicationId], references:[id], onDelete:Cascade)
+  @@index([applicationId,verified])
+}
+
 model Student {
   id String @id @default(cuid())
   userId String @unique
@@ -172,6 +229,7 @@ model Student {
   documents StudentDocument[]
   division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admissionApplication AdmissionApplication? @relation("AdmissionStudent")
   parentLinks ParentStudent[]
   attendance AttendanceRecord[]
   examAttendance ExamRecord[]
