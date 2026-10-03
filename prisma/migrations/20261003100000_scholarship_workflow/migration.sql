@@ -22,6 +22,7 @@ CREATE TABLE "ScholarshipApplication" (
   "scholarshipId" TEXT NOT NULL,
   "studentId" TEXT NOT NULL,
   "amountRequested" INTEGER NOT NULL,
+  "awardedAmount" INTEGER,
   "householdIncome" INTEGER,
   "academicPercentage" DOUBLE PRECISION,
   "category" TEXT,
