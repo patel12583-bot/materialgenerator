@@ -80,6 +80,7 @@ model Institution {
   examSessions ExamSession[]
   admissionApplications AdmissionApplication[]
   feeStructures FeeStructure[]
+  scholarshipPrograms ScholarshipProgram[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -110,6 +111,7 @@ model Program {
   semesters Semester[]
   admissionApplications AdmissionApplication[]
   feeStructures FeeStructure[]
+  scholarshipPrograms ScholarshipProgram[]
   @@unique([departmentId, code])
 }
 
@@ -253,6 +255,7 @@ model Student {
   examAttendance ExamRecord[]
   leaveRequests LeaveRequest[]
   notifications Notification[]
+  scholarshipApplications ScholarshipApplication[]
   @@index([divisionId, rollNo])
 }
 
@@ -520,4 +523,54 @@ model FeePayment {
   studentFee StudentFee @relation(fields:[studentFeeId], references:[id], onDelete:Restrict)
   recordedBy User @relation(fields:[recordedById], references:[id], onDelete:Restrict)
   @@index([studentFeeId, paidAt])
+}
+
+
+enum ScholarshipStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+model ScholarshipProgram {
+  id String @id @default(cuid())
+  institutionId String
+  name String
+  code String
+  description String?
+  academicYear String
+  maxAwardAmount Int @default(0)
+  incomeLimit Int?
+  minimumPercentage Float?
+  deadline DateTime
+  active Boolean @default(true)
+  institution Institution @relation(fields:[institutionId], references:[id], onDelete:Cascade)
+  applications ScholarshipApplication[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([institutionId, code, academicYear])
+  @@index([institutionId, academicYear, active])
+}
+
+model ScholarshipApplication {
+  id String @id @default(cuid())
+  scholarshipId String
+  studentId String
+  amountRequested Int
+  householdIncome Int?
+  academicPercentage Float?
+  category String?
+  statement String?
+  documentUrl String?
+  status ScholarshipStatus @default(PENDING)
+  reviewNote String?
+  reviewedAt DateTime?
+  appliedAt DateTime @default(now())
+  scholarship ScholarshipProgram @relation(fields:[scholarshipId], references:[id], onDelete:Cascade)
+  student Student @relation(fields:[studentId], references:[id], onDelete:Cascade)
+  @@unique([scholarshipId, studentId])
+  @@index([studentId, status])
+  @@index([scholarshipId, status])
 }
