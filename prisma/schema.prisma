@@ -111,7 +111,6 @@ model Program {
   semesters Semester[]
   admissionApplications AdmissionApplication[]
   feeStructures FeeStructure[]
-  scholarshipPrograms ScholarshipProgram[]
   @@unique([departmentId, code])
 }
 
