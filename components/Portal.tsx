@@ -13,6 +13,7 @@ import UploadCenter from "@/components/UploadCenter";
 import HODManagement from "@/components/HODManagement";
 import AdmissionManagement from "@/components/AdmissionManagement";
 import FeeManagement from "@/components/FeeManagement";
+import ScholarshipManagement from "@/components/ScholarshipManagement";
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity, BarChart3, Bell, BookOpen, CalendarDays, Check, CheckCircle2,
@@ -26,7 +27,7 @@ const data = {
   "Super Admin":["Overview","Institutions","Departments","Admissions","Programs","Users","Roles & Permissions","Administrators","HODs","Faculty","Students","System Settings","Security","Audit Logs","Database / System Health","Notification Configuration","Integration Configuration","Backup / Export","Access Control","Reports & Analytics","Settings"],
   HOD:["Overview","Department Overview","Students","Faculty","Subjects","Faculty-Subject Mapping","Master Timetable","Attendance Monitor","Attendance Reports","Defaulters","Leave Approvals","Examinations","Result Monitoring","Faculty Workload","Department Notifications","Assignments","Study Material","PYQ Bank","Notes","Reports","Audit"],
   Faculty:["Overview","Today's Lectures","My Classes","My Subjects","Timetable","Attendance","Attendance Correction","Attendance Reports","Assignments","Study Material Upload","Question Bank","Exams","Marks Entry","Results","Leave Requests","Substitute Faculty","Student Requests","Notifications","Reports","Profile","Settings"],
-  Student:["Overview","My Profile","My Courses","Timetable","My Attendance","Attendance Alerts","Attendance Reports","Assignments","Study Material","AI Study Generator","AI Tutor","PYQ Bank","Notes","Exams","Hall Tickets","Results","Fees","Leave Requests","Notifications","Library","Hostel","Transport","Documents","Certificates","Helpdesk","Events","Placement","Settings"],
+  Student:["Overview","My Profile","My Courses","Timetable","My Attendance","Attendance Alerts","Attendance Reports","Assignments","Study Material","AI Study Generator","AI Tutor","PYQ Bank","Notes","Exams","Hall Tickets","Results","Fees","Scholarship","Leave Requests","Notifications","Library","Hostel","Transport","Documents","Certificates","Helpdesk","Events","Placement","Settings"],
   Parent:["Overview","My Child","Attendance","Attendance Alerts","Timetable","Assignments","Study Material","Examinations","Hall Tickets","Results","Fees","Leave Status","Notifications","Library","Hostel","Transport","Certificates","Helpdesk","Events","Settings"]
 } as const;
 
@@ -159,6 +160,7 @@ export default function Portal({role,title,subtitle}:{role:Role;title:string;sub
           :page==="Admissions"&&(role==="Admin"||role==="Super Admin")?<AdmissionManagement/>
           :page==="Fees & Accounts"&&role==="Admin"?<FeeManagement role={role}/>
           :page==="Fees"&&(role==="Student"||role==="Parent")?<FeeManagement role={role}/>
+          :page==="Scholarship"&&(role==="Admin"||role==="Super Admin"||role==="Student"||role==="Parent")?<ScholarshipManagement role={role}/>
           :page==="Faculty"&&role==="Admin"?<FacultyManagement/>
           :page==="Faculty"&&role==="HOD"?<FacultyManagement canEdit={false}/>
           :page==="Faculty-Subject Mapping"&&(role==="Admin"||role==="HOD")?<FacultySubjectMapping/>
