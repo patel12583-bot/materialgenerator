@@ -1,0 +1,1 @@
+<?php require __DIR__.'/../bootstrap.php'; if(user()){ $u=user(); Database::connection()->prepare('INSERT INTO audit_logs(user_id,action,module,record_id,ip_address) VALUES(?,?,?,?,?)')->execute([$u['id'],'LOGOUT','AUTH',$u['id'],$_SERVER['REMOTE_ADDR']??null]); } logout_user(); redirect('/login.php');

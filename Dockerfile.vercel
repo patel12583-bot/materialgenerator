@@ -1,0 +1,23 @@
+FROM composer:2 AS dependencies
+
+WORKDIR /app
+COPY php-erp/composer.json ./
+RUN composer install --no-dev --no-interaction --no-progress --optimize-autoloader
+
+FROM dunglas/frankenphp:1-php8.4-alpine
+
+RUN install-php-extensions \
+    pdo_mysql \
+    mbstring \
+    gd \
+    intl \
+    zip \
+    opcache
+
+WORKDIR /app
+COPY --from=dependencies /app/vendor ./vendor
+COPY php-erp/ /app/php-erp/
+COPY Caddyfile /etc/caddy/Caddyfile
+
+ENV PORT=80
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
