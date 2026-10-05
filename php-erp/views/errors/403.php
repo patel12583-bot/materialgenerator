@@ -1,0 +1,1 @@
+<!doctype html><html><body style="font-family:system-ui;padding:48px"><h1>403 — Access denied</h1><p>Your account does not have permission for this action.</p><a href="/dashboard.php">Return to dashboard</a></body></html>
